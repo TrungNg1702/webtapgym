@@ -1,0 +1,24 @@
+package com.project.WebTapGym.services;
+
+import com.project.WebTapGym.dtos.ExerciseDTO;
+import com.project.WebTapGym.models.Exercise;
+import com.project.WebTapGym.responses.ExerciseResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.*;
+
+
+public interface IExerciseService {
+    public Exercise createExercise(ExerciseDTO exerciseDTO);
+
+    Exercise getExerciseById(long id);
+
+    Page<ExerciseResponse> getAllExercises(PageRequest pageRequest);
+
+    Exercise updateExercise(long exerciseId, ExerciseDTO exerciseDTO);
+
+    void deleteExercise(long id);
+
+    boolean existsByName(String exerciseName);
+
+
+}
