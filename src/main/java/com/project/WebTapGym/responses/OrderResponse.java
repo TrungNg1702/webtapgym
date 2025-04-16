@@ -1,49 +1,59 @@
-package com.project.WebTapGym.dtos;
+package com.project.WebTapGym.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
-@Data
-@Builder
 @AllArgsConstructor
-@NoArgsConstructor
+
+@Builder
 @Getter
 @Setter
-public class OrderDTO {
+@NoArgsConstructor
+public class OrderResponse extends BaseResponse {
+    private Long id;
+
     @JsonProperty("user_id")
-    @Min(value = 1, message = "User id phải lớn hơn 0")
-    private  Long userId;
+    private Long userId;
 
     @JsonProperty("full_name")
     private String fullName;
 
     private String email;
 
-    @NotNull(message = "Số điện thoại không được để trống")
     private String phone;
 
     private String address;
 
     private String note;
 
+    @JsonProperty("order_date")
+    private LocalDateTime orderDate;
+
+    private String status;
+
     @JsonProperty("total_money")
-    @Min(value = 0, message = "Tổng số tiền phải >= 0")
     private Float totalMoney;
 
     @JsonProperty("shipping_method")
-    private String shippingMethod = "";
+    private String shippingMethod;
 
     @JsonProperty("shipping_address")
-    private String shippingAddress = "";
+    private String shippingAddress;
 
     @JsonProperty("shipping_date")
-    private LocalDate shippingDate;
+    private Date shippingDate;
+
+    @JsonProperty("tracking_number")
+    private String trackingNumber;
 
     @JsonProperty("payment_method")
     private String paymentMethod;
+
+    @JsonProperty("active")
+    private Boolean active;
+
+
 }

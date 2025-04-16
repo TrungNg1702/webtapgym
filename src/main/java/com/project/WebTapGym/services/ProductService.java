@@ -10,6 +10,7 @@ import com.project.WebTapGym.models.ProductImage;
 import com.project.WebTapGym.repositories.CategoryRepository;
 import com.project.WebTapGym.repositories.ProductImageRepository;
 import com.project.WebTapGym.repositories.ProductRepository;
+import com.project.WebTapGym.responses.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,8 +48,8 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Page<Product> getAllProducts(PageRequest pageRequest) {
-        return productRepository.findAll(pageRequest);
+    public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
+        return productRepository.findAll(pageRequest).map(ProductResponse::from);
     }
 
     @Override
@@ -99,8 +100,8 @@ public class ProductService implements IProductService {
 
         // ko cho insert qua 5 anh cho 1 san pham
         int size = productImageRepository.findByProductId(productId).size();
-        if (size >= 5 ){
-            throw new InvalidParamException("Number of image must be <= 5");
+        if (size >= ProductImage.MAXIMUM_IMAGE_PER_PRODUCT ){
+            throw new InvalidParamException("Number of image must be <= "+ ProductImage.MAXIMUM_IMAGE_PER_PRODUCT);
         }
         return productImageRepository.save(newProductImage);
     }

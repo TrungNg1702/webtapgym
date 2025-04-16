@@ -5,6 +5,7 @@ import com.project.WebTapGym.dtos.ProductImageDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.Product;
 import com.project.WebTapGym.models.ProductImage;
+import com.project.WebTapGym.responses.ProductResponse;
 import org.springframework.data.domain.*;
 
 public interface IProductService {
@@ -12,7 +13,7 @@ public interface IProductService {
 
     Product getProductById(Long id) throws DataNotFoundException;
 
-    Page<Product> getAllProducts(PageRequest pageRequest);
+    Page<ProductResponse> getAllProducts(PageRequest pageRequest);
 
     Product updateProduct(Long productId, ProductDTO productDTO) throws DataNotFoundException;
 

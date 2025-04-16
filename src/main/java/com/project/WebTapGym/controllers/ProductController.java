@@ -6,10 +6,15 @@ import com.project.WebTapGym.dtos.ProductImageDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.Product;
 import com.project.WebTapGym.models.ProductImage;
+import com.project.WebTapGym.responses.ProductListResponse;
+import com.project.WebTapGym.responses.ProductResponse;
 import com.project.WebTapGym.services.ProductService;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -65,6 +70,10 @@ public class ProductController {
         try {
             Product existingProduct = productService.getProductById(productId);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+            if(files.size() > ProductImage.MAXIMUM_IMAGE_PER_PRODUCT )
+            {
+                return ResponseEntity.badRequest().body("Không được uploads quá 5 aảnh");
+            }
             List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files){
                 if (file.getSize() == 0)
@@ -102,6 +111,9 @@ public class ProductController {
     }
 
     private String storeFile(MultipartFile file) throws IOException {
+        if(!isImageFile(file) || file.getOriginalFilename() == null){
+            throw new IOException("Invalid image file");
+        }
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         // them uuid
         String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
@@ -120,30 +132,53 @@ public class ProductController {
 
     }
 
-
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
+    }
 
     @GetMapping("")
-    public ResponseEntity<?> getAllProducts(
+    public ResponseEntity<ProductListResponse> getAllProducts(
             @RequestParam("page") int page,
             @RequestParam("limit") int limit
     ){
-        return ResponseEntity.ok("asdasd");
+        PageRequest pageRequest = PageRequest.of(page, limit,
+                Sort.by("createdAt").descending());
+
+        Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
+        int totalsPages = productPage.getTotalPages();
+        List<ProductResponse> products = productPage.getContent();
+        return ResponseEntity.ok(ProductListResponse.builder()
+                        .products(products)
+                        .totalPages(totalsPages)
+                .build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable("id") Long productId){
-        return ResponseEntity.ok("Product with id: " + productId + " found");
+    public ResponseEntity<?> getProductById(@PathVariable("id") Long productId) throws DataNotFoundException {
+        Product existingProduct = productService.getProductById(productId);
+        return ResponseEntity.ok(ProductResponse.from(existingProduct));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(
             @PathVariable("id") Long productId,
             @Valid @RequestBody ProductDTO productDTO){
-        return ResponseEntity.ok("asdasd");
+        try{
+            Product updatedProduct = productService.updateProduct(productId, productDTO);
+            return ResponseEntity.ok(ProductResponse.from(updatedProduct));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable("id") Long productId){
-        return ResponseEntity.status(HttpStatus.OK).body("Deleted product with id: " + productId);
+        try{
+            productService.deleteProduct(productId);
+            return ResponseEntity.ok("Xóa thành công product với id: " + productId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

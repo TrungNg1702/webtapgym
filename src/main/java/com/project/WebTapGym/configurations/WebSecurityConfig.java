@@ -22,10 +22,9 @@ public class WebSecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(request -> {
-                    request.requestMatchers("**").permitAll();
-                })
-        ;
+                .authorizeHttpRequests(request ->
+                        request.anyRequest().permitAll()
+                );
         return http.build();
     }
 }
