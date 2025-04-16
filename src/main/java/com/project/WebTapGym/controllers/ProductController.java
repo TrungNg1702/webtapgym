@@ -2,8 +2,14 @@ package com.project.WebTapGym.controllers;
 
 import ch.qos.logback.core.util.StringUtil;
 import com.project.WebTapGym.dtos.ProductDTO;
+import com.project.WebTapGym.dtos.ProductImageDTO;
+import com.project.WebTapGym.exceptions.DataNotFoundException;
+import com.project.WebTapGym.models.Product;
+import com.project.WebTapGym.models.ProductImage;
+import com.project.WebTapGym.services.ProductService;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +31,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    private final ProductService productService;
+
+
+    @PostMapping(value = "")
     public ResponseEntity<?> createProduct(
             @Valid @RequestBody ProductDTO productDTO,
             BindingResult result){
@@ -40,36 +50,55 @@ public class ProductController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
+            Product newProduct =  productService.createProduct(productDTO);
+            return ResponseEntity.ok(newProduct);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
-            List<MultipartFile> files = productDTO.getFiles();
+    @PostMapping(value = "uploads/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImages(
+            @PathVariable("id") Long productId,
+            @RequestParam("files") List<MultipartFile> files)
+    {
+        try {
+            Product existingProduct = productService.getProductById(productId);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+            List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files){
                 if (file.getSize() == 0)
                 {
                     continue;
                 }
-
                 // Kiem tra kich thuoc file va dinh dang
                 if(file.getSize() > 10 * 1024 * 1024)
                 {
-                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File size must be less than 10MB");
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                            .body("File size must be less than 10MB");
                 }
-
                 String contentType = file.getContentType();
                 if(contentType == null || !contentType.startsWith("image/"))
                 {
-                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File must be an image");
+                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                            .body("File must be an image");
                 }
                 // luw file va cap nhat thumbnail trong dto
                 String fileName = storeFile(file);
                 // luu vao doi tuong product trong db
+                ProductImage productImage = productService.createProductImage(
+                        existingProduct.getId(),
+                        ProductImageDTO.builder()
+                                .imageUrl(fileName)
+                                .build());
+                productImages.add(productImage);
+
             }
-
-
-            return ResponseEntity.ok("Them moi san pham thanh cong");
-        } catch (Exception e){
+            return ResponseEntity.ok().body(productImages);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+
     }
 
     private String storeFile(MultipartFile file) throws IOException {
