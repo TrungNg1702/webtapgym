@@ -41,6 +41,8 @@ public class Exercise extends BaseEntity {
     @Column(name = "rest_between_sets")
     private Long restBetweenSets;
 
+    @Column(name = "video_url")
+    private String videoUrl;
     @ManyToOne
     @JoinColumn(name = "muscle_group_id")
     private MuscleGroup muscleGroup;

@@ -1,7 +1,9 @@
 package com.project.WebTapGym.services;
 
 import com.project.WebTapGym.dtos.ExerciseDTO;
+import com.project.WebTapGym.dtos.ExerciseVideoDTO;
 import com.project.WebTapGym.models.Exercise;
+import com.project.WebTapGym.models.ExerciseVideo;
 import com.project.WebTapGym.responses.ExerciseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.*;
@@ -19,6 +21,11 @@ public interface IExerciseService {
     void deleteExercise(long id);
 
     boolean existsByName(String exerciseName);
+
+    ExerciseVideo createExerciseVideo(
+            Long exerciseId,
+            ExerciseVideoDTO dto) throws Exception;
+
 
 
 }

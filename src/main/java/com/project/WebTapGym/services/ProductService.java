@@ -26,6 +26,7 @@ public class ProductService implements IProductService {
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
 
+
     @Override
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
          Category existingCategory = categoryRepository.findById(productDTO.getCategoryId())
@@ -105,4 +106,5 @@ public class ProductService implements IProductService {
         }
         return productImageRepository.save(newProductImage);
     }
+
 }

@@ -44,6 +44,9 @@ public class ExerciseDTO {
     @JsonProperty("recommended_reps")
     private Long recommendedReps;
 
+    @JsonProperty("video_url")
+    private String videoUrl;
+
     @JsonProperty("rest_between_sets")
     private Long restBetweenSets;
 }

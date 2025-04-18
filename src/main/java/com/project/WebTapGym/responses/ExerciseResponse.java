@@ -42,6 +42,10 @@ public class ExerciseResponse extends BaseResponse{
     @JsonProperty("rest_between_sets")
     private Long restBetweenSets;
 
+    @JsonProperty("video_url")
+    private String videoUrl;
+
+
     public static ExerciseResponse fromExercise (Exercise exercise){
         ExerciseResponse exerciseResponse = ExerciseResponse.builder()
                 .exerciseName(exercise.getName())
@@ -53,6 +57,7 @@ public class ExerciseResponse extends BaseResponse{
                 .recommendedSets(exercise.getRecommendedSets())
                 .recommendedReps(exercise.getRecommendedReps())
                 .restBetweenSets(exercise.getRestBetweenSets())
+                .videoUrl(exercise.getVideoUrl())
                 .build();
         exerciseResponse.setCreatedAt(exercise.getCreatedAt());
         exerciseResponse.setUpdatedAt(exercise.getUpdatedAt());

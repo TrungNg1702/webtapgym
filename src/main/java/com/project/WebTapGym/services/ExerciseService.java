@@ -1,9 +1,12 @@
 package com.project.WebTapGym.services;
 
 import com.project.WebTapGym.dtos.ExerciseDTO;
+import com.project.WebTapGym.dtos.ExerciseVideoDTO;
 import com.project.WebTapGym.models.Exercise;
+import com.project.WebTapGym.models.ExerciseVideo;
 import com.project.WebTapGym.models.MuscleGroup;
 import com.project.WebTapGym.repositories.ExerciseRepository;
+import com.project.WebTapGym.repositories.ExerciseVideoRepository;
 import com.project.WebTapGym.repositories.MuscleGroupsRepository;
 import com.project.WebTapGym.responses.ExerciseResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ public class ExerciseService implements IExerciseService {
 
     private final ExerciseRepository exerciseRepository;
     private final MuscleGroupsRepository muscleGroupsRepository;
+    private final ExerciseVideoRepository exerciseVideoRepository;
     @Override
     public Exercise createExercise(ExerciseDTO exerciseDTO) {
         MuscleGroup existingMuscleGroup = muscleGroupsRepository
@@ -36,6 +40,7 @@ public class ExerciseService implements IExerciseService {
                 .recommendedSets(exerciseDTO.getRecommendedSets())
                 .recommendedReps(exerciseDTO.getRecommendedReps())
                 .restBetweenSets(exerciseDTO.getRestBetweenSets())
+                .videoUrl(exerciseDTO.getVideoUrl())
                 .build();
         return exerciseRepository.save(newExercise);
     }
@@ -67,6 +72,7 @@ public class ExerciseService implements IExerciseService {
             existingExercise.setTargetMusclePercentage(exerciseDTO.getTargetMusclePercentage());
             existingExercise.setRecommendedSets(exerciseDTO.getRecommendedSets());
             existingExercise.setRecommendedReps(exerciseDTO.getRecommendedReps());
+            existingExercise.setVideoUrl(exerciseDTO.getVideoUrl());
 
             return exerciseRepository.save(existingExercise);
         }
@@ -84,5 +90,23 @@ public class ExerciseService implements IExerciseService {
     @Override
     public boolean existsByName(String exerciseName) {
         return exerciseRepository.existsByName(exerciseName);
+    }
+
+    @Override
+    public ExerciseVideo createExerciseVideo(
+            Long exerciseId,
+            ExerciseVideoDTO exerciseVideoDTO) throws Exception {
+
+        Exercise existingExercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+
+        ExerciseVideo exerciseVideo = ExerciseVideo
+                .builder()
+                .exercise(existingExercise)
+                .videoUrl(exerciseVideoDTO.getVideoUrl())
+                .build();
+
+
+        return exerciseVideoRepository.save(exerciseVideo);
     }
 }
