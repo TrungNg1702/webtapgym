@@ -29,7 +29,7 @@ public class OrderDetailDTO {
 
     @JsonProperty("total_money")
     @Min(value = 0, message = "Tong tien phai lon hon hoac bang 0")
-    private int totalMoney;
+    private Float totalMoney;
 
 
 }
