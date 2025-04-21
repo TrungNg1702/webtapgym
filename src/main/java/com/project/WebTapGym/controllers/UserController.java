@@ -3,6 +3,7 @@ package com.project.WebTapGym.controllers;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.UserRepository;
+import com.project.WebTapGym.responses.UserResponse;
 import com.project.WebTapGym.services.IUserService;
 import com.project.WebTapGym.services.UserService;
 import jakarta.validation.Valid;
@@ -12,10 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.project.WebTapGym.dtos.*;
 
 import java.util.ArrayList;
@@ -63,6 +61,19 @@ public class UserController {
             return ResponseEntity.ok(token);
         } catch (DataNotFoundException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable("id") Long userID,
+            @Valid @RequestBody UserUpdateDTO userUpdateDTO
+    ){
+        try{
+            User updateUser = userService.updateUser(userID, userUpdateDTO);
+            return ResponseEntity.ok(UserResponse.from(updateUser));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

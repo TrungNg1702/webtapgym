@@ -3,6 +3,7 @@ package com.project.WebTapGym.services;
 import com.project.WebTapGym.components.JwtTokenUtil;
 import com.project.WebTapGym.configurations.SecurityConfig;
 import com.project.WebTapGym.dtos.UserDTO;
+import com.project.WebTapGym.dtos.UserUpdateDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.Role;
 import com.project.WebTapGym.models.User;
@@ -78,5 +79,22 @@ public class UserService implements IUserService {
         // authenticate with JV Spring Security
         authenticationManager.authenticate(authenticationToken);
         return jwtTokenUtil.generateToken(existingUser);
+    }
+
+    @Override
+    public User updateUser(Long userId, UserUpdateDTO userUpdateDTO) throws DataNotFoundException {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        existingUser.setEmail(userUpdateDTO.getEmail());
+        existingUser.setUsername(userUpdateDTO.getUserName());
+        existingUser.setFullName(userUpdateDTO.getFullName());
+        existingUser.setPhone(userUpdateDTO.getPhone());
+        existingUser.setAddress(userUpdateDTO.getAddress());
+        existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
+        existingUser.setHeightCm(userUpdateDTO.getHeight());
+        existingUser.setWeightKg(userUpdateDTO.getWeight());
+
+        return userRepository.save(existingUser);
     }
 }
