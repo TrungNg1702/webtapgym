@@ -21,6 +21,8 @@ public class UserResponse extends BaseResponse {
 
     @JsonProperty("full_name")
     private String fullName;
+    @JsonProperty("sex")
+    private String sex;
 
     private String phone;
 
@@ -45,6 +47,7 @@ public class UserResponse extends BaseResponse {
                 .dateOfBirth(user.getDateOfBirth())
                 .height(user.getHeightCm())
                 .weight(user.getWeightKg())
+                .sex(String.valueOf(user.getSex()))
 
                 .build();
 

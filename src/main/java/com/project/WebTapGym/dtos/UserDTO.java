@@ -1,6 +1,7 @@
 package com.project.WebTapGym.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.project.WebTapGym.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -51,6 +52,6 @@ public class UserDTO {
     @NotNull(message = "Role not blank")
     private Long roleId;
 
-
+    private Gender sex;
 
 }

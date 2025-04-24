@@ -1,6 +1,7 @@
 package com.project.WebTapGym.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.project.WebTapGym.enums.Gender;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -34,5 +35,8 @@ public class UserUpdateDTO {
 
     @JsonProperty("weight_kg")
     private Float weight;
+
+    private Gender sex;
+
 
 }

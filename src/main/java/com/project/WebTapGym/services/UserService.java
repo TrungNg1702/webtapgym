@@ -1,7 +1,6 @@
 package com.project.WebTapGym.services;
 
 import com.project.WebTapGym.components.JwtTokenUtil;
-import com.project.WebTapGym.configurations.SecurityConfig;
 import com.project.WebTapGym.dtos.UserDTO;
 import com.project.WebTapGym.dtos.UserUpdateDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
@@ -9,6 +8,7 @@ import com.project.WebTapGym.models.Role;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.RoleRepository;
 import com.project.WebTapGym.repositories.UserRepository;
+import com.project.WebTapGym.responses.LoginResponse;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,6 +43,8 @@ public class UserService implements IUserService {
                 .address(userDTO.getAddress())
                 .dateOfBirth(userDTO.getDateOfBirth())
                 .heightCm(userDTO.getHeight())
+                .sex(userDTO.getSex())
+
                 .weightKg(userDTO.getWeight())
 //                .subscriptionMonths(userDTO.getSubscriptionMonths())
 //                .registrationDate(LocalDateTime.now())
@@ -81,6 +83,31 @@ public class UserService implements IUserService {
         return jwtTokenUtil.generateToken(existingUser);
     }
 
+    public LoginResponse loginAndGetResponse(String phone, String password) throws DataNotFoundException {
+        Optional<User> optionalUser = userRepository.findByPhone(phone);
+        if (optionalUser.isEmpty()) {
+            throw new DataNotFoundException("User not found");
+        }
+
+        User user = optionalUser.get();
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new DataNotFoundException("Wrong phone or password");
+        }
+
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(phone, password, user.getAuthorities());
+        authenticationManager.authenticate(authenticationToken);
+
+        String token = jwtTokenUtil.generateToken(user);
+        return new LoginResponse(
+                user.getId(),
+                jwtTokenUtil.generateToken(user),
+                String.valueOf(user.getRole().getId()) // ✅ chuyển roleId thành chuỗi
+        );
+    }
+
+
     @Override
     public User updateUser(Long userId, UserUpdateDTO userUpdateDTO) throws DataNotFoundException {
         User existingUser = userRepository.findById(userId)
@@ -91,10 +118,16 @@ public class UserService implements IUserService {
         existingUser.setFullName(userUpdateDTO.getFullName());
         existingUser.setPhone(userUpdateDTO.getPhone());
         existingUser.setAddress(userUpdateDTO.getAddress());
-        existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
         existingUser.setHeightCm(userUpdateDTO.getHeight());
+        existingUser.setSex(userUpdateDTO.getSex());
         existingUser.setWeightKg(userUpdateDTO.getWeight());
 
         return userRepository.save(existingUser);
     }
+    @Override
+    public User getUserById(Long userId) throws DataNotFoundException {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy người dùng với ID: " + userId));
+    }
+
 }

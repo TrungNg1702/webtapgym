@@ -3,6 +3,7 @@ package com.project.WebTapGym.controllers;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.UserRepository;
+import com.project.WebTapGym.responses.LoginResponse;
 import com.project.WebTapGym.responses.UserResponse;
 import com.project.WebTapGym.services.IUserService;
 import com.project.WebTapGym.services.UserService;
@@ -16,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.project.WebTapGym.dtos.*;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import java.util.List;
 public class UserController {
 
     private final IUserService userService;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> createUser(
@@ -53,16 +56,19 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO){
-        // kiem tra thong tin dang nhap
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
         try {
-            String token = userService.login(userLoginDTO.getPhone(), userLoginDTO.getPassword());
-            // tra ve token response
-            return ResponseEntity.ok(token);
+            LoginResponse response = userService.loginAndGetResponse(
+                    userLoginDTO.getPhone(), userLoginDTO.getPassword()
+            );
+            return ResponseEntity.ok(response);
         } catch (DataNotFoundException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
         }
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(
@@ -76,4 +82,18 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable("id") Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+            return ResponseEntity.ok(UserResponse.from(user));
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin người dùng: " + e.getMessage());
+        }
+    }
+
+
 }

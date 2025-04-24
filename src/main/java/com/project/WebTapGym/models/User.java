@@ -1,5 +1,6 @@
 package com.project.WebTapGym.models;
 
+import com.project.WebTapGym.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -76,7 +77,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return phone;
+        return username;
     }
 
     @Override
@@ -98,4 +99,9 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sex")
+    private Gender sex;
+
 }
