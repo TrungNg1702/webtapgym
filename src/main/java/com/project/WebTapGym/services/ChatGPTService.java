@@ -1,12 +1,12 @@
 package com.project.WebTapGym.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,39 +14,77 @@ import java.util.Map;
 
 @Service
 public class ChatGPTService {
-    @Value("${openai.api.key}")
-    private String apiKey;
+    private final String geminiApiUrl;
+    private final String apiKey;
+    private final WebClient webClient;
+    private final ObjectMapper objectMapper;
 
-    @Value("${openai.api.url}")
-    private String openaiUrl;
+    public ChatGPTService(
+            @Value("${gemini.api.url}") String geminiApiUrl,
+            @Value("${gemini.api.key}") String apiKey,
+            WebClient.Builder webClientBuilder
+    ) {
+        this.geminiApiUrl = geminiApiUrl;
+        this.apiKey = apiKey;
+        this.webClient = webClientBuilder.baseUrl(geminiApiUrl).build();
+        this.objectMapper = new ObjectMapper();
+    }
 
-    @Value("${openai.api.referer}")
-    private String openaiReferer;
+    public String sendMessageToChatbot(String message) {
+        // Tạo body theo định dạng Gemini API yêu cầu
+        Map<String, Object> content = new HashMap<>();
+        content.put("text", "Bạn là một huấn luyện viên thể hình chuyên nghiệp. Hãy trả lời câu hỏi sau liên quan đến tập gym, dinh dưỡng, hoặc lịch tập một cách chi tiết và dễ hiểu. Nếu câu hỏi không liên quan, hãy trả lời một cách chính xác và tự nhiên: " + message);
 
-    public String askChatGPT(String message) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("Authorization", "Bearer " + apiKey);
-        headers.add("HTTP-Referer", openaiReferer);
+        Map<String, Object> part = new HashMap<>();
+        part.put("parts", List.of(content));
 
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "openai/gpt-3.5-turbo"); // hoặc bạn chọn model khác nếu muốn
+        body.put("contents", List.of(part));
 
-        List<Map<String, String>> messages = List.of(
-                Map.of("role", "system", "content", "Bạn là huấn luyện viên gym, trả lời ngắn gọn, dễ hiểu."),
-                Map.of("role", "user", "content", message)
-        );
+        // Gọi Gemini API
+        Mono<String> responseMono = webClient.post()
+                .uri(uriBuilder -> uriBuilder.queryParam("key", apiKey).build())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(String.class);
 
-        body.put("messages", messages);
+        // Blocking để lấy kết quả
+        try {
+            String response = responseMono.block();
+            return parseResponse(response);
+        } catch (Exception e) {
+            return "Lỗi khi gọi API: " + e.getMessage();
+        }
+    }
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+    private String parseResponse(String jsonResponse) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(jsonResponse);
+            // Kiểm tra nếu có lỗi từ Gemini API
+            if (rootNode.has("error")) {
+                JsonNode errorNode = rootNode.get("error");
+                String errorMessage = errorNode.has("message") ? errorNode.get("message").asText() : "Lỗi không xác định từ Gemini API";
+                return "Lỗi từ Gemini API: " + errorMessage;
+            }
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(openaiUrl, entity, Map.class);
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-        Map<String, Object> messageData = (Map<String, Object>) choices.get(0).get("message");
-
-        return messageData.get("content").toString();
-     }
+            // Lấy text từ response
+            JsonNode candidates = rootNode.get("candidates");
+            if (candidates != null && candidates.isArray() && candidates.size() > 0) {
+                JsonNode contentNode = candidates.get(0).get("content");
+                if (contentNode != null) {
+                    JsonNode partsNode = contentNode.get("parts");
+                    if (partsNode != null && partsNode.isArray() && partsNode.size() > 0) {
+                        JsonNode textNode = partsNode.get(0).get("text");
+                        if (textNode != null) {
+                            return textNode.asText();
+                        }
+                    }
+                }
+            }
+            return "Không tìm thấy nội dung phản hồi từ Gemini API.";
+        } catch (Exception e) {
+            return "Lỗi khi parse phản hồi: " + e.getMessage();
+        }
+    }
 }
