@@ -80,6 +80,10 @@ public class User extends BaseEntity implements UserDetails {
         return phone;
     }
 
+    public String getUsername2() {
+        return username;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
