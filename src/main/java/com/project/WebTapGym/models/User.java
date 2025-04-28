@@ -108,4 +108,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "sex")
     private Gender sex;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Cart cart;
+
 }
