@@ -132,6 +132,14 @@ public class ExerciseController {
 
     }
 
+    @GetMapping("/main_muscle_group/{muscleMainGroupId}")
+    public ResponseEntity<List<ExerciseResponse>> getExercisesByMuscleMainGroup(
+            @PathVariable Long muscleMainGroupId
+    ){
+        List<ExerciseResponse> exercises = exerciseService.getExercisesByMainMuscleGroup(muscleMainGroupId);
+        return ResponseEntity.ok(exercises);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteExerciseById(
             @PathVariable("id") Long exerciseId)

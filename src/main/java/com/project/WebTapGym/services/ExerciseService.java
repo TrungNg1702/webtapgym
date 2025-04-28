@@ -14,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -108,5 +110,14 @@ public class ExerciseService implements IExerciseService {
 
 
         return exerciseVideoRepository.save(exerciseVideo);
+    }
+
+    @Override
+    public List<ExerciseResponse> getExercisesByMainMuscleGroup(Long muscleMainGroupId) {
+        return exerciseRepository
+                .findByMuscleMainGroupId(muscleMainGroupId)
+                .stream()
+                .map(ExerciseResponse::fromExercise)
+                .collect(Collectors.toList());
     }
 }

@@ -43,7 +43,12 @@ public class Exercise extends BaseEntity {
 
     @Column(name = "video_url")
     private String videoUrl;
+
     @ManyToOne
     @JoinColumn(name = "muscle_group_id")
     private MuscleGroup muscleGroup;
+
+    @ManyToOne
+    @JoinColumn(name = "muscle_main_groups_id")
+    private MuscleMainGroup muscleMainGroup;
 }

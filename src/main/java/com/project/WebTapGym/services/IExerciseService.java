@@ -8,6 +8,8 @@ import com.project.WebTapGym.responses.ExerciseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.*;
 
+import java.util.List;
+
 
 public interface IExerciseService {
     public Exercise createExercise(ExerciseDTO exerciseDTO);
@@ -26,6 +28,6 @@ public interface IExerciseService {
             Long exerciseId,
             ExerciseVideoDTO dto) throws Exception;
 
-
+    List<ExerciseResponse> getExercisesByMainMuscleGroup(Long muscleMainGroupId);
 
 }
