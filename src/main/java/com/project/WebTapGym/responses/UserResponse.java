@@ -39,7 +39,7 @@ public class UserResponse extends BaseResponse {
 
     public static UserResponse from(User user) {
         UserResponse userResponse = UserResponse.builder()
-                .userName(user.getUsername())
+                .userName(user.getUsername2())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .phone(user.getPhone())

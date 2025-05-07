@@ -16,5 +16,6 @@ public interface IUserService {
 
     User getUserById(Long userId) throws DataNotFoundException;
 
+
     LoginResponse loginAndGetResponse(String phone, String password) throws DataNotFoundException;
 }
