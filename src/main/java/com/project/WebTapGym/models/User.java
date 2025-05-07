@@ -80,6 +80,10 @@ public class User extends BaseEntity implements UserDetails {
         return phone;
     }
 
+    public String getUsername2() {
+        return username;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -106,5 +110,8 @@ public class User extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "sex")
     private Gender sex;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Cart cart;
 
 }
