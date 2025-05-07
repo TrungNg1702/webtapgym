@@ -6,11 +6,16 @@ import com.project.WebTapGym.dtos.UserUpdateDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.Role;
 import com.project.WebTapGym.models.User;
+import com.project.WebTapGym.repositories.ExerciseRepository;
 import com.project.WebTapGym.repositories.RoleRepository;
 import com.project.WebTapGym.repositories.UserRepository;
+import com.project.WebTapGym.responses.ExerciseResponse;
 import com.project.WebTapGym.responses.LoginResponse;
+import com.project.WebTapGym.responses.UserResponse;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +31,7 @@ public class UserService implements IUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
+    private ExerciseRepository exerciseRepository;
 //    private final SecurityConfig securityConfig;
     private final AuthenticationManager authenticationManager;
     @Override
@@ -105,6 +111,13 @@ public class UserService implements IUserService {
                 jwtTokenUtil.generateToken(user),
                 String.valueOf(user.getRole().getId()) // ✅ chuyển roleId thành chuỗi
         );
+    }
+
+    @Override
+    public Page<UserResponse> getAllUser(PageRequest pageRequest) {
+        return userRepository
+                .findAll(pageRequest)
+                .map(UserResponse::from);
     }
 
 
