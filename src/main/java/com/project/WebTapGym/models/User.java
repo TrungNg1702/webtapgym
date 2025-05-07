@@ -93,9 +93,7 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isAccountNonLocked() {
         return true;
     }
-    public String getUsername2() {
-        return username;
-    }
+
 
     @Override
     public boolean isCredentialsNonExpired() {
