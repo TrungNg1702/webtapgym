@@ -4,11 +4,15 @@ import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.UserRepository;
 import com.project.WebTapGym.responses.LoginResponse;
+import com.project.WebTapGym.responses.UserListResponse;
 import com.project.WebTapGym.responses.UserResponse;
 import com.project.WebTapGym.services.IUserService;
 import com.project.WebTapGym.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -95,5 +99,23 @@ public class UserController {
         }
     }
 
+    @GetMapping("")
+    public ResponseEntity<UserListResponse> getUsers(
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit
+    ){
+        PageRequest pageRequest = PageRequest.of(page, limit,
+                Sort.by("createdAt").descending());
+
+        Page<UserResponse> userPage = userService.getAllUser(pageRequest);
+
+        int totalPages = userPage.getTotalPages();
+        List<UserResponse> users = userPage.getContent();
+
+        return ResponseEntity.ok(UserListResponse.builder()
+                        .users(users)
+                        .totalPages(totalPages)
+                .build());
+    }
 
 }
