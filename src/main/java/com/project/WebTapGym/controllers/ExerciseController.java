@@ -107,7 +107,7 @@ public class ExerciseController {
             @RequestParam("limit") int limit
     ) {
         PageRequest pageRequest = PageRequest.of(page, limit,
-                Sort.by("createdAt").descending());
+                Sort.by("id").descending());
         Page<ExerciseResponse> exercisePage = exerciseService.getAllExercises(pageRequest);
         // Lay ra tong so trang
         int totalPages = exercisePage.getTotalPages();
