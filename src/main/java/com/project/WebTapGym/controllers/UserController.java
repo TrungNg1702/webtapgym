@@ -51,7 +51,6 @@ public class UserController {
                return ResponseEntity.badRequest().body("Password không khớp!");
            }
            User user = userService.createUser(userDTO);
-//           return ResponseEntity.ok().body("Đăng ký thành công!");
            return ResponseEntity.ok(user);
        } catch (Exception e){
            return ResponseEntity.badRequest().body(e.getMessage());
@@ -117,5 +116,4 @@ public class UserController {
                         .totalPages(totalPages)
                 .build());
     }
-
 }
