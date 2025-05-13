@@ -1,5 +1,6 @@
 package com.project.WebTapGym.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.UserRepository;
@@ -115,5 +116,30 @@ public class UserController {
                         .users(users)
                         .totalPages(totalPages)
                 .build());
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId, @RequestBody BanRequest banRequest) {
+        try {
+            String banReason = banRequest != null && banRequest.getBanReason() != null
+                    ? banRequest.getBanReason()
+                    : null;
+            userService.deleteUser(userId, banReason);
+            return ResponseEntity.ok("User banned successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+}
+class BanRequest {
+    @JsonProperty("ban_reason")
+    private String banReason;
+
+    public String getBanReason() {
+        return banReason;
+    }
+
+    public void setBanReason(String banReason) {
+        this.banReason = banReason;
     }
 }

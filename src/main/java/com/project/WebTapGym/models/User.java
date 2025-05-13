@@ -68,6 +68,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "subscription_months")
     private int subscriptionMonths;
 
+    @Column(name = "ban_reason", length = 255)
+    private String banReason;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();

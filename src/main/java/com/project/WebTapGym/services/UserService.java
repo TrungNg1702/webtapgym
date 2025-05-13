@@ -14,6 +14,8 @@ import com.project.WebTapGym.responses.LoginResponse;
 import com.project.WebTapGym.responses.UserResponse;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class UserService implements IUserService {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -55,6 +57,7 @@ public class UserService implements IUserService {
 //                .subscriptionMonths(userDTO.getSubscriptionMonths())
 //                .registrationDate(LocalDateTime.now())
 //                .expirationDate(LocalDateTime.now().plusMonths(userDTO.getSubscriptionMonths()))
+                .active(true)
                 .build();
 
         Role role = roleRepository.findById(userDTO.getRoleId())
@@ -64,7 +67,7 @@ public class UserService implements IUserService {
         String password = userDTO.getPassword();
         String encodePassword = passwordEncoder.encode(password);
         newUser.setPassword(encodePassword);
-        
+
         return userRepository.save(newUser);
     }
 
@@ -97,6 +100,13 @@ public class UserService implements IUserService {
 
         User user = optionalUser.get();
 
+        if (!user.isActive()) {
+            String banMessage = user.getBanReason() != null && !user.getBanReason().isEmpty()
+                    ? "Tài khoản đã bị vô hiệu hóa. Lý do: " + user.getBanReason() + ". Vui lòng liên hệ admin để được hỗ trợ."
+                    : "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ admin để được hỗ trợ.";
+            throw new DataNotFoundException(banMessage);
+        }
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new DataNotFoundException("Wrong phone or password");
         }
@@ -118,6 +128,27 @@ public class UserService implements IUserService {
         return userRepository
                 .findAll(pageRequest)
                 .map(UserResponse::from);
+    }
+
+    public void deleteUser(Long userId, String banReason) {
+        logger.info("Deleting user with ID: {}, banReason: {}", userId, banReason);
+        User user = null;
+        try {
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new DataNotFoundException("User not found"));
+        } catch (DataNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        user.setActive(false);
+
+        if (banReason != null && !banReason.trim().isEmpty()) {
+            user.setBanReason(banReason.trim());
+        } else {
+            logger.warn("Ban reason is null or empty for user ID: {}", userId);
+            user.setBanReason("Không có lý do cụ thể");
+        }
+        userRepository.save(user);
+        logger.info("User ID: {} banned successfully with banReason: {}", userId, user.getBanReason());
     }
 
 

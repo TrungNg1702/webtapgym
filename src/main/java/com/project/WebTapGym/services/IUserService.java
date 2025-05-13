@@ -23,4 +23,6 @@ public interface IUserService {
     LoginResponse loginAndGetResponse(String phone, String password) throws DataNotFoundException;
 
     Page<UserResponse> getAllUser(PageRequest pageRequest);
+
+    void deleteUser(Long userId, String banReason);
 }
