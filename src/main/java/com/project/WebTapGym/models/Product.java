@@ -1,5 +1,6 @@
 package com.project.WebTapGym.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,6 +37,7 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<ProductImage> productImages;
 
 }
