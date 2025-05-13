@@ -12,6 +12,7 @@ import com.project.WebTapGym.services.ProductService;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -110,6 +111,24 @@ public class ProductController {
 
     }
 
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<?> viewImage(@PathVariable String imageName){
+        try{
+            java.nio.file.Path imagePath = Paths.get("uploads/"+imageName);
+            UrlResource resource = new UrlResource(imagePath.toUri());
+
+            if(resource.exists()){
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(resource);
+            }else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     private String storeFile(MultipartFile file) throws IOException {
         if(!isImageFile(file) || file.getOriginalFilename() == null){
             throw new IOException("Invalid image file");
@@ -139,13 +158,16 @@ public class ProductController {
 
     @GetMapping("")
     public ResponseEntity<ProductListResponse> getAllProducts(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0", name = "category_id") Long categoryId,
             @RequestParam("page") int page,
             @RequestParam("limit") int limit
     ){
         PageRequest pageRequest = PageRequest.of(page, limit,
-                Sort.by("category_id").descending());
+                Sort.by("createdAt").descending());
 
-        Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
+        Page<ProductResponse> productPage = productService.getAllProducts(keyword, categoryId, pageRequest);
+
         int totalsPages = productPage.getTotalPages();
         List<ProductResponse> products = productPage.getContent();
         return ResponseEntity.ok(ProductListResponse.builder()
