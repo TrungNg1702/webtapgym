@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +26,9 @@ public class ExerciseService implements IExerciseService {
     private final ExerciseRepository exerciseRepository;
     private final MuscleGroupsRepository muscleGroupsRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
+
     @Override
+    @Transactional
     public Exercise createExercise(ExerciseDTO exerciseDTO) {
         MuscleGroup existingMuscleGroup = muscleGroupsRepository
                 .findById(exerciseDTO.getMuscleGroupId())
@@ -62,6 +65,7 @@ public class ExerciseService implements IExerciseService {
     }
 
     @Override
+    @Transactional
     public Exercise updateExercise(long exerciseId, ExerciseDTO exerciseDTO) {
         Exercise existingExercise = getExerciseById(exerciseId);
         if (existingExercise != null) {
@@ -83,6 +87,7 @@ public class ExerciseService implements IExerciseService {
     }
 
     @Override
+    @Transactional
     public void deleteExercise(long id) {
         Optional<Exercise> optionalExercise = exerciseRepository.findById(id);
         optionalExercise.ifPresent(exerciseRepository::delete);

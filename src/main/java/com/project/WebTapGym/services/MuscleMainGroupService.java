@@ -6,6 +6,7 @@ import com.project.WebTapGym.models.MuscleMainGroup;
 import com.project.WebTapGym.repositories.MuscleMainGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class MuscleMainGroupService implements IMuscleMainGroupService{
     private final MuscleMainGroupRepository muscleMainGroupRepository;
 
     @Override
+    @Transactional
     public MuscleMainGroup createMuscleMainGroup(MuscleMainGroupDTO muscleMainGroupDTO) {
        MuscleMainGroup newMuscleMain = MuscleMainGroup
                .builder()
@@ -37,6 +39,7 @@ public class MuscleMainGroupService implements IMuscleMainGroupService{
     }
 
     @Override
+    @Transactional
     public MuscleMainGroup updateMuscleMainGroup(Long muscleMainId, MuscleMainGroupDTO muscleMainGroupDTO) throws DataNotFoundException {
         MuscleMainGroup existingMuscleMain = getMuscleMainGroupById(muscleMainId);
         existingMuscleMain.setName(muscleMainGroupDTO.getName());
@@ -45,6 +48,7 @@ public class MuscleMainGroupService implements IMuscleMainGroupService{
     }
 
     @Override
+    @Transactional
     public void deleteMuscleMainGroup(Long id) {
         muscleMainGroupRepository.deleteById(id);
     }

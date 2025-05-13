@@ -1,10 +1,14 @@
 package com.project.WebTapGym.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.project.WebTapGym.models.Order;
+import com.project.WebTapGym.models.OrderDetail;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 
@@ -44,7 +48,7 @@ public class OrderResponse extends BaseResponse {
     private String shippingAddress;
 
     @JsonProperty("shipping_date")
-    private Date shippingDate;
+    private LocalDate shippingDate;
 
     @JsonProperty("tracking_number")
     private String trackingNumber;
@@ -55,5 +59,32 @@ public class OrderResponse extends BaseResponse {
     @JsonProperty("active")
     private Boolean active;
 
+    @JsonProperty("order_details")
+    private List<OrderDetailResponse> orderDetails;
 
+    public static OrderResponse fromOrder(Order order) {
+        List<OrderDetail> orderDetails = order.getOrderDetails();
+        List<OrderDetailResponse> orderDetailResponses = orderDetails
+                .stream()
+                .map(orderDetail -> OrderDetailResponse.fromOrderDetail(orderDetail)).toList();
+        OrderResponse orderResponse =  OrderResponse
+                .builder()
+                .id(order.getId())
+                .userId(order.getUser().getId())
+                .fullName(order.getFullName())
+                .phone(order.getPhone())
+                .email(order.getEmail())
+                .address(order.getAddress())
+                .note(order.getNote())
+                .orderDate(order.getOrderDate())
+                .status(order.getStatus())
+                .totalMoney(order.getTotalMoney())
+                .shippingMethod(order.getShippingMethod())
+                .shippingAddress(order.getShippingAddress())
+                .shippingDate(order.getShippingDate())
+                .paymentMethod(order.getPaymentMethod())
+                .orderDetails(orderDetailResponses) //important
+                .build();
+        return orderResponse;
+    }
 }

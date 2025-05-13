@@ -22,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -35,8 +36,11 @@ public class UserService implements IUserService {
     private final JwtTokenUtil jwtTokenUtil;
     private ExerciseRepository exerciseRepository;
 //    private final SecurityConfig securityConfig;
+
+
     private final AuthenticationManager authenticationManager;
     @Override
+    @Transactional
     public User createUser(UserDTO userDTO) {
         String phone = userDTO.getPhone();
         if(userRepository.existsByPhone(phone)) {
@@ -153,6 +157,7 @@ public class UserService implements IUserService {
 
 
     @Override
+    @Transactional
     public User updateUser(Long userId, UserUpdateDTO userUpdateDTO) throws DataNotFoundException {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
