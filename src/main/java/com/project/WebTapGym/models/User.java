@@ -1,5 +1,6 @@
 package com.project.WebTapGym.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.WebTapGym.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
@@ -68,6 +69,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "subscription_months")
     private int subscriptionMonths;
 
+    @Column(name = "ban_reason", length = 255)
+    private String banReason;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -110,6 +114,7 @@ public class User extends BaseEntity implements UserDetails {
     private Gender sex;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Cart cart;
 
 }

@@ -7,7 +7,7 @@ import com.project.WebTapGym.responses.OrderResponse;
 import java.util.List;
 
 public interface IOrderService {
-    OrderResponse createOrder(OrderDTO orderDTO);
+    Order createOrder(OrderDTO orderDTO);
 
     Order getOrder(Long id);
 

@@ -1,5 +1,6 @@
 package com.project.WebTapGym.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,9 +22,12 @@ public class Cart extends BaseEntity {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<CartItem> cartItems = new ArrayList<>();
 
     public List<CartItem> getCartItems() {

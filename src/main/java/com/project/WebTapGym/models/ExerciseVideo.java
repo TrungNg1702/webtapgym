@@ -1,5 +1,6 @@
 package com.project.WebTapGym.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,8 @@ public class ExerciseVideo {
 
     @ManyToOne
     @JoinColumn(name = "exercise_id")
+    @JsonIgnore
+
     private Exercise exercise;
 
     @Column(name = "video_url", length = 300)

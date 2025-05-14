@@ -12,6 +12,7 @@ import com.project.WebTapGym.responses.CartResponse;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -26,6 +27,7 @@ public class CartService implements ICartService {
 
 
     @Override
+    @Transactional
     public Cart addProductToCart(Long userId, Long productId, Integer quantity) {
         if(quantity <= 0 )
         {
@@ -79,6 +81,7 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional
     public Cart updateCartItemQuantity(Long userId, Long productId, Integer quantity) { // update số lượng
         if(quantity <= 0 ){
             throw new IllegalArgumentException("Quantity must be greater than 0");
@@ -96,6 +99,7 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional
     public void removeProductFromCart(Long userId, Long productId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
@@ -109,6 +113,7 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));

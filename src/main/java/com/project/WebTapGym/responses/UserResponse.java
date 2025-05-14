@@ -14,6 +14,8 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 public class UserResponse extends BaseResponse {
+    private Long id;
+
     @JsonProperty("username")
     private String userName;
 
@@ -37,8 +39,12 @@ public class UserResponse extends BaseResponse {
     @JsonProperty("weight_kg")
     private Float weight;
 
+    @JsonProperty("is_active")
+    private Boolean isActive;
+
     public static UserResponse from(User user) {
         UserResponse userResponse = UserResponse.builder()
+                .id(user.getId())
                 .userName(user.getUsername2())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
@@ -48,7 +54,7 @@ public class UserResponse extends BaseResponse {
                 .height(user.getHeightCm())
                 .weight(user.getWeightKg())
                 .sex(String.valueOf(user.getSex()))
-
+                .isActive(user.isActive())
                 .build();
 
         userResponse.setCreatedAt(user.getCreatedAt());
