@@ -120,4 +120,25 @@ public class OrderService implements IOrderService {
         return orderRepository.findByUserId(userId);
     }
 
+    @Override
+    public Order updateOrderStatus(Long orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+
+        if (!isValidOrderStatus(newStatus)) {
+            throw new RuntimeException("Invalid order status: " + newStatus);
+        }
+
+        order.setStatus(newStatus);
+        return orderRepository.save(order);
+    }
+
+
+    private boolean isValidOrderStatus(String status) {
+        return status.equals(OrderStatus.PENDING) ||
+                status.equals(OrderStatus.PROCESSING) ||
+                status.equals(OrderStatus.SHIPPED) ||
+                status.equals(OrderStatus.DELIVERED) ||
+                status.equals(OrderStatus.CANCELLED);
+    }
 }
