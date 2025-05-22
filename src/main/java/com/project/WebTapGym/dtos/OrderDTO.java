@@ -32,6 +32,8 @@ public class OrderDTO {
 
     private String note;
 
+    private String status;
+
     @JsonProperty("total_money")
     @Min(value = 0, message = "Tổng số tiền phải >= 0")
     private Float totalMoney;
