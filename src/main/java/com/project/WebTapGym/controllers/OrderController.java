@@ -2,11 +2,15 @@ package com.project.WebTapGym.controllers;
 
 import com.project.WebTapGym.dtos.OrderDTO;
 import com.project.WebTapGym.models.Order;
+import com.project.WebTapGym.responses.OrderListResponse;
 import com.project.WebTapGym.responses.OrderResponse;
 import com.project.WebTapGym.services.IOrderService;
 import com.project.WebTapGym.services.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -47,7 +51,20 @@ public class OrderController {
             @RequestParam("page") int page,
             @RequestParam("limit") int limit
     ){
-        return ResponseEntity.ok("asdasd");
+        PageRequest pageRequest = PageRequest.of(page, limit,
+                Sort.by("id").descending());
+
+        Page<OrderResponse> orders = orderService.getAllOrders(pageRequest);
+
+        int totalPages = orders.getTotalPages();
+        List<OrderResponse> orderResponses = orders.getContent();
+
+
+
+        return ResponseEntity.ok(OrderListResponse.builder()
+                        .orders(orderResponses)
+                        .totalPages(totalPages)
+                .build());
     }
 
     @GetMapping("{id}")

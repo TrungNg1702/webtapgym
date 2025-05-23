@@ -10,6 +10,8 @@ import com.project.WebTapGym.repositories.UserRepository;
 import com.project.WebTapGym.responses.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -150,6 +152,13 @@ public class OrderService implements IOrderService {
 
         order.setStatus(newStatus);
         return orderRepository.save(order);
+    }
+
+    @Override
+    public Page<OrderResponse> getAllOrders(PageRequest pageRequest) {
+        return orderRepository
+                .findAll(pageRequest)
+                .map(OrderResponse::fromOrder);
     }
 
 

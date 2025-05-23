@@ -3,6 +3,9 @@ package com.project.WebTapGym.services;
 import com.project.WebTapGym.dtos.OrderDTO;
 import com.project.WebTapGym.models.Order;
 import com.project.WebTapGym.responses.OrderResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -19,4 +22,5 @@ public interface IOrderService {
 
     Order updateOrderStatus(Long orderId, String newStatus);
 
+    Page<OrderResponse> getAllOrders(PageRequest pageRequest);
 }
