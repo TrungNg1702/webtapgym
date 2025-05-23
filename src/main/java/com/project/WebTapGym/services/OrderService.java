@@ -107,19 +107,12 @@ public class OrderService implements IOrderService {
             order.setShippingDate(shippingDate);
         }
 
-        if (orderDTO.getStatus() != null && !orderDTO.getStatus().equals(order.getStatus())) {
-            if (!isValidOrderStatus(orderDTO.getStatus())) {
-                throw new RuntimeException("Invalid order status: " + orderDTO.getStatus());
-            }
-            order.setStatus(orderDTO.getStatus());
-        }
         // tao bang anh xa
         modelMapper.typeMap(OrderDTO.class, Order.class)
                 .addMappings(
                         mapper -> {
                             mapper.skip(Order::setId);
                             mapper.skip(Order::setShippingDate);
-                            mapper.skip(Order::setStatus);
                 });
         modelMapper.map(orderDTO, order);
         order.setUser(existingUser);

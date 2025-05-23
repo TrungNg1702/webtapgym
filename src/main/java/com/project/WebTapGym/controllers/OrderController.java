@@ -108,17 +108,17 @@ public class OrderController {
         }
     }
 
-//    @PutMapping("/{id}/status")
-//    public ResponseEntity<?> updateOrderStatus(
-//            @PathVariable Long id,
-//            @RequestParam("status") String newStatus) {
-//        try {
-//            Order updatedOrder = orderService.updateOrderStatus(id, newStatus);
-//            return ResponseEntity.ok(updatedOrder);
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
-//    }
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam("status") String newStatus) {
+        try {
+            Order updatedOrder = orderService.updateOrderStatus(id, newStatus);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteOrder(@Valid @PathVariable Long id){
