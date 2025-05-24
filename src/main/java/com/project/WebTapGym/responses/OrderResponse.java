@@ -84,6 +84,7 @@ public class OrderResponse extends BaseResponse {
                 .shippingDate(order.getShippingDate())
                 .paymentMethod(order.getPaymentMethod())
                 .orderDetails(orderDetailResponses) //important
+                .active(order.getActive())
                 .build();
         return orderResponse;
     }
