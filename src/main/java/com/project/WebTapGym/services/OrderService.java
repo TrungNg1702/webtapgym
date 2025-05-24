@@ -53,6 +53,7 @@ public class OrderService implements IOrderService {
         order.setShippingDate(shippingDate);
         order.setActive(true);
         order.setTotalMoney(orderDTO.getTotalMoney());
+        order.setActive(true);
         orderRepository.save(order);
         // Tạo danh sách các đối tượng OrderDetail từ CartItem
         List<OrderDetail> orderDetails = new ArrayList<>();
@@ -125,6 +126,7 @@ public class OrderService implements IOrderService {
         Order order = orderRepository.findById(id).orElseThrow(null);
         if(order != null) {
             order.setActive(false);
+            order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
         }
     }
@@ -139,11 +141,20 @@ public class OrderService implements IOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
 
+        if (order.getStatus().equals(OrderStatus.CANCELLED)) {
+            throw new RuntimeException("Cannot change status for an order that is already CANCELLED.");
+        }
+
         if (!isValidOrderStatus(newStatus)) {
             throw new RuntimeException("Invalid order status: " + newStatus);
         }
 
         order.setStatus(newStatus);
+
+        if (newStatus.equals(OrderStatus.CANCELLED)) {
+            order.setActive(false);
+        }
+
         return orderRepository.save(order);
     }
 
