@@ -25,4 +25,6 @@ public interface IUserService {
     Page<UserResponse> getAllUser(PageRequest pageRequest);
 
     void deleteUser(Long userId, String banReason);
+
+    User unlockUser(Long userId) throws DataNotFoundException;
 }

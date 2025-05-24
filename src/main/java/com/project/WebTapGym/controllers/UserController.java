@@ -73,6 +73,17 @@ public class UserController {
         }
     }
 
+    @PutMapping("/{id}/unlock")
+    public ResponseEntity<?> unlockUser(
+            @PathVariable("id") Long userID
+    ){
+        try{
+            User unlockUser = userService.unlockUser(userID);
+            return ResponseEntity.ok("Đã mở khóa thành công User có ID là " + userID);
+        } catch (DataNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(

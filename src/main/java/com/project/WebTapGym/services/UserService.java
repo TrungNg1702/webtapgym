@@ -155,6 +155,23 @@ public class UserService implements IUserService {
         logger.info("User ID: {} banned successfully with banReason: {}", userId, user.getBanReason());
     }
 
+    //  ghi lại thông tin về người dùng được mở khóa
+    @Override
+    public User unlockUser(Long userId) throws DataNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User khong ton tai"));
+
+        if(user.isActive()){
+            logger.warn("Đang cố gắng mở khóa một tài khoản User đang hoạt động: {}", userId);
+        }
+
+        user.setActive(true);
+        user.setBanReason(null);
+        User unlockedUser = userRepository.save(user);
+        logger.info("User with ID {} unlocked successfully", userId);
+        return unlockedUser;
+    }
+
 
     @Override
     @Transactional
