@@ -16,7 +16,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -90,6 +92,21 @@ public class OrderController {
         {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Lay doanh thu
+    @GetMapping("/revenue/monthly")
+    public ResponseEntity<Map<String, Double>> getMothlyRevenue(
+            @RequestParam(name = "year", required = false) Integer year
+    ){
+        Map<String, Double> revenue;
+
+        if (year != null){
+            revenue = orderService.getMonthlyRevenueByYear(year);
+        } else {
+            revenue = orderService.getMonthlyRevenue();
+        }
+        return ResponseEntity.ok(revenue);
     }
 
 

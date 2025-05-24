@@ -18,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -172,5 +169,32 @@ public class OrderService implements IOrderService {
                 status.equals(OrderStatus.SHIPPED) ||
                 status.equals(OrderStatus.DELIVERED) ||
                 status.equals(OrderStatus.CANCELLED);
+    }
+
+    public Map<String, Double> getMonthlyRevenue() {
+        List<Object[]> results = orderRepository.findMonthlyRevenue();
+        Map<String, Double> monthlyRevenue = new HashMap<>();
+
+        for (Object[] row : results) {
+            Integer year = (Integer) row[0];
+            Integer month = (Integer) row[1];
+            Double totalRevenue = (Double) row[2];
+            String monthYear = String.format("%02d/%d", month, year); // Định dạng MM/YYYY
+            monthlyRevenue.put(monthYear, totalRevenue);
+        }
+        return monthlyRevenue;
+    }
+
+    public Map<String, Double> getMonthlyRevenueByYear(int year) {
+        List<Object[]> results = orderRepository.findMonthlyRevenueByYear(year);
+        Map<String, Double> mothlyRevenue = new HashMap<>();
+
+        for (Object[] row : results) {
+            Integer month = (Integer) row[0];
+            Double totalRevenue = (Double) row[1];
+            String monthString = String.format("%02d", month);
+            mothlyRevenue.put(monthString, totalRevenue);
+        }
+        return mothlyRevenue;
     }
 }

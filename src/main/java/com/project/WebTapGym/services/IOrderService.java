@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IOrderService {
     Order createOrder(OrderDTO orderDTO);
@@ -23,4 +24,8 @@ public interface IOrderService {
     Order updateOrderStatus(Long orderId, String newStatus);
 
     Page<OrderResponse> getAllOrders(PageRequest pageRequest);
+
+    Map<String, Double> getMonthlyRevenue();
+
+    Map<String, Double> getMonthlyRevenueByYear(int year);
 }
