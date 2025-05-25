@@ -32,4 +32,6 @@ public class ProductDTO {
     @JsonProperty("category_id")
     private Long categoryId;
 
+    @JsonProperty("deleted_image_ids")
+    private List<Long> deleteImageIds;
 }

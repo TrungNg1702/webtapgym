@@ -7,6 +7,9 @@ import com.project.WebTapGym.models.Product;
 import com.project.WebTapGym.models.ProductImage;
 import com.project.WebTapGym.responses.ProductResponse;
 import org.springframework.data.domain.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface IProductService {
     Product createProduct(ProductDTO productDTO) throws Exception;
@@ -25,5 +28,10 @@ public interface IProductService {
             Long productId,
             ProductImageDTO productImageDTO) throws Exception;
 
+    void deleteProductImage(Long imageId)  throws DataNotFoundException;
 
+    Product updateProductWithImages(Long productId,
+                                    ProductDTO productDTO,
+                                    MultipartFile thumbnailFile,
+                                    List<MultipartFile> files) throws Exception;
 }
