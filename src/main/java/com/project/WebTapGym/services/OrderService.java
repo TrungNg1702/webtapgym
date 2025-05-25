@@ -131,8 +131,15 @@ public class OrderService implements IOrderService {
         }
     }
 
+
     @Override
+    @Transactional
     public List<Order> findByUserId(Long userId) {
+        // Kiểm tra user có tồn tại không trước khi tìm order (tùy chọn, nhưng tốt)
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        // Sử dụng phương thức mới để tải đầy đủ các mối quan hệ
         return orderRepository.findByUserId(userId);
     }
 

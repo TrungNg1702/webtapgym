@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -81,16 +83,19 @@ public class OrderController {
 
 
     @GetMapping("/user/{user_id}")
-    public ResponseEntity<?> getOrdersByUserId(
-            @Valid @PathVariable("user_id") Long userId)
-    {
-        try
-        {
+    public ResponseEntity<?> getOrdersByUserId(@PathVariable("user_id") Long userId) {
+        try {
             List<Order> orders = orderService.findByUserId(userId);
-            return ResponseEntity.ok(orders);
-        } catch (Exception e)
-        {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Ánh xạ từng Order sang OrderResponse
+            List<OrderResponse> orderResponses = orders.stream()
+                    .map(OrderResponse::fromOrder)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(orderResponses);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
     }
 
