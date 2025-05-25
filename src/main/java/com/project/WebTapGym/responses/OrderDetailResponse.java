@@ -5,7 +5,6 @@ import com.project.WebTapGym.models.OrderDetail;
 import lombok.*;
 
 @AllArgsConstructor
-
 @Builder
 @Getter
 @Setter
@@ -28,11 +27,16 @@ public class OrderDetailResponse {
     private Float totalMoney;
 
     public static OrderDetailResponse fromOrderDetail(OrderDetail orderDetail) {
+        if (orderDetail == null) {
+            return null; // Trả về null nếu orderDetail đầu vào là null
+        }
 
         return OrderDetailResponse.builder()
                 .id(orderDetail.getId())
-                .orderId(orderDetail.getOrder().getId())
-                .productId(orderDetail.getProduct().getId())
+                // Kiểm tra null cho orderDetail.getOrder()
+                .orderId(orderDetail.getOrder() != null ? orderDetail.getOrder().getId() : null)
+                // Kiểm tra null cho orderDetail.getProduct()
+                .productId(orderDetail.getProduct() != null ? orderDetail.getProduct().getId() : null)
                 .price(orderDetail.getPrice())
                 .numberOfProducts(orderDetail.getNumberOfProducts())
                 .totalMoney(orderDetail.getTotalMoney())

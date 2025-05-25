@@ -73,7 +73,7 @@ public class OrderController {
     public ResponseEntity<?> getOrderById(@Valid @PathVariable("id") Long orderId){
         try{
             Order existing = orderService.getOrder(orderId);
-            return ResponseEntity.ok(existing);
+            return ResponseEntity.ok(OrderResponse.fromOrder(existing));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

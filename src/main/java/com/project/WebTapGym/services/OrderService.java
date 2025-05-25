@@ -85,8 +85,11 @@ public class OrderService implements IOrderService {
     }
 
     @Override
+    @Transactional
     public Order getOrder(Long id) {
-        return orderRepository.findById(id).orElseThrow(null);
+        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        order.getOrderDetails().size();
+        return order;
     }
 
     @Override

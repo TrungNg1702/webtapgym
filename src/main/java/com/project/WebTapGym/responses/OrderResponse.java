@@ -2,16 +2,16 @@ package com.project.WebTapGym.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.WebTapGym.models.Order;
-import com.project.WebTapGym.models.OrderDetail;
+import com.project.WebTapGym.models.OrderDetail; // Giữ nguyên import này
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
+// import java.util.Date; // Không cần thiết nếu bạn đã dùng LocalDateTime và LocalDate
 import java.util.List;
+import java.util.stream.Collectors; // Thêm import này
 
 @AllArgsConstructor
-
 @Builder
 @Getter
 @Setter
@@ -63,14 +63,24 @@ public class OrderResponse extends BaseResponse {
     private List<OrderDetailResponse> orderDetails;
 
     public static OrderResponse fromOrder(Order order) {
-        List<OrderDetail> orderDetails = order.getOrderDetails();
-        List<OrderDetailResponse> orderDetailResponses = orderDetails
-                .stream()
-                .map(orderDetail -> OrderDetailResponse.fromOrderDetail(orderDetail)).toList();
-        OrderResponse orderResponse =  OrderResponse
+        if (order == null) {
+            return null;
+        }
+
+        // Xử lý orderDetails
+        List<OrderDetailResponse> orderDetailResponses = null;
+        if (order.getOrderDetails() != null) {
+            orderDetailResponses = order.getOrderDetails()
+                    .stream()
+                    .map(OrderDetailResponse::fromOrderDetail)
+                    .collect(Collectors.toList());
+        }
+
+        OrderResponse orderResponse = OrderResponse
                 .builder()
                 .id(order.getId())
-                .userId(order.getUser().getId())
+                // Kiểm tra null cho order.getUser()
+                .userId(order.getUser() != null ? order.getUser().getId() : null)
                 .fullName(order.getFullName())
                 .phone(order.getPhone())
                 .email(order.getEmail())
@@ -83,7 +93,7 @@ public class OrderResponse extends BaseResponse {
                 .shippingAddress(order.getShippingAddress())
                 .shippingDate(order.getShippingDate())
                 .paymentMethod(order.getPaymentMethod())
-                .orderDetails(orderDetailResponses) //important
+                .orderDetails(orderDetailResponses)
                 .active(order.getActive())
                 .build();
         return orderResponse;
