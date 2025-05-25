@@ -76,6 +76,9 @@ public class ProductController {
                 return ResponseEntity.badRequest().body("Không được uploads quá 5 aảnh");
             }
             List<ProductImage> productImages = new ArrayList<>();
+            // Sử dụng một biến để theo dõi ảnh đầu tiên
+            String firstImageFileName = null;
+
             for (MultipartFile file : files){
                 if (file.getSize() == 0)
                 {
@@ -95,6 +98,12 @@ public class ProductController {
                 }
                 // luw file va cap nhat thumbnail trong dto
                 String fileName = storeFile(file);
+
+                // Nếu đây là ảnh đầu tiên và chưa có thumbnail, đặt nó làm thumbnail
+                if (firstImageFileName == null) {
+                    firstImageFileName = fileName; // Lưu tên file ảnh đầu tiên
+                }
+
                 // luu vao doi tuong product trong db
                 ProductImage productImage = productService.createProductImage(
                         existingProduct.getId(),
@@ -102,13 +111,24 @@ public class ProductController {
                                 .imageUrl(fileName)
                                 .build());
                 productImages.add(productImage);
+            }
 
+            // Sau khi tất cả ảnh đã được xử lý, cập nhật thumbnail cho Product
+            if (firstImageFileName != null && (existingProduct.getThumbnail() == null || existingProduct.getThumbnail().isEmpty())) {
+                ProductDTO productUpdateDTO = ProductDTO.builder()
+                        .name(existingProduct.getName()) // Giữ nguyên tên
+                        .price(existingProduct.getPrice()) // Giữ nguyên giá
+                        .description(existingProduct.getDescription()) // Giữ nguyên mô tả
+                        .categoryId(existingProduct.getCategory().getId()) // Giữ nguyên category
+                        .thumbnail(firstImageFileName) // Đặt thumbnail mới
+                        .build();
+                // Gọi service để cập nhật sản phẩm với thumbnail mới
+                productService.updateProduct(productId, productUpdateDTO);
             }
             return ResponseEntity.ok().body(productImages);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
     }
 
     @GetMapping("/images/{imageName}")
