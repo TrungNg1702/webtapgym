@@ -10,9 +10,11 @@ import com.project.WebTapGym.services.ExerciseService;
 import com.project.WebTapGym.services.IExerciseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -69,34 +72,37 @@ public class ExerciseController {
             if (file.isEmpty()){
                 return ResponseEntity.badRequest().body("File is empty");
             }
-
             if(exerciseId == null){
                 return ResponseEntity.badRequest().body("Exercise id is null");
             }
-
             if (!file.getContentType().startsWith("video/")) {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File must be a video");
             }
 
-            String fileName = UUID.randomUUID() + "_" + StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-            java.nio.file.Path uploadDir = (java.nio.file.Path) Paths.get("exercise_videos");
-            if (!Files.exists((java.nio.file.Path) uploadDir)) {
-                Files.createDirectories((java.nio.file.Path) uploadDir);
-            }
+            ExerciseVideo savedVideo = exerciseService.createExerciseVideo(exerciseId, file);
 
-            java.nio.file.Path filePath = ((java.nio.file.Path) uploadDir).resolve(fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            ExerciseVideoDTO exerciseVideoDTO = ExerciseVideoDTO
-                    .builder()
-                    .exerciseId(exerciseId)
-                    .videoUrl(fileName)
-                    .build();
-
-            ExerciseVideo saved = exerciseService.createExerciseVideo(exerciseId, exerciseVideoDTO);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok(savedVideo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/videos/{fileName}") // Endpoint để lấy video
+    public ResponseEntity<Resource> serveVideo(@PathVariable String fileName) {
+        try {
+            Resource file = exerciseService.getVideoAsResource(fileName);
+            String contentType = Files.probeContentType(file.getFile().toPath());
+
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
+                    .body(file);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build(); // Trả về 404 nếu không tìm thấy file hoặc lỗi khác
         }
     }
 
@@ -109,14 +115,13 @@ public class ExerciseController {
         PageRequest pageRequest = PageRequest.of(page, limit,
                 Sort.by("id").descending());
         Page<ExerciseResponse> exercisePage = exerciseService.getAllExercises(pageRequest);
-        // Lay ra tong so trang
         int totalPages = exercisePage.getTotalPages();
         List<ExerciseResponse> exercises = exercisePage.getContent();
 
         return ResponseEntity.ok(ExerciseListResponse.builder()
-                        .exercises(exercises)
-                        .totalPages(totalPages)
-                        .build());
+                .exercises(exercises)
+                .totalPages(totalPages)
+                .build());
     }
 
     @GetMapping("/{id}")
