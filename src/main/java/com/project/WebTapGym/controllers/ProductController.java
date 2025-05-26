@@ -62,7 +62,7 @@ public class ProductController {
             }
             // Gọi service với thumbnailFile và files
             Product newProduct = productService.createProduct(productDTO, thumbnailFile, files);
-            return ResponseEntity.ok(ProductResponse.fromProduct(newProduct));
+            return ResponseEntity.ok(ProductResponse.from(newProduct));
         } catch (DataNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
