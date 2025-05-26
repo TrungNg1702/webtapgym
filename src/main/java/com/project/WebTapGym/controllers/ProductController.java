@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
@@ -44,22 +45,27 @@ public class ProductController {
     private final IProductService productService;
 
 
-    @PostMapping(value = "")
+    @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> createProduct(
-            @Valid @RequestBody ProductDTO productDTO,
-            BindingResult result){
-
-        try{
-            if (result.hasErrors()) {
-                List<String> errorMessages =  result.getFieldErrors()
+            @Valid @RequestPart("product") ProductDTO productDTO,
+            BindingResult bindingResult,
+            @RequestPart(value = "thumbnailFile", required = false) MultipartFile thumbnailFile, // <-- Thêm thumbnailFile
+            @RequestPart(value = "files", required = false) List<MultipartFile> files // <-- Thêm danh sách ảnh phụ
+    ) {
+        try {
+            if (bindingResult.hasErrors()) {
+                List<String> errorMessages = bindingResult.getFieldErrors()
                         .stream()
                         .map(FieldError::getDefaultMessage)
-                        .toList();
+                        .collect(Collectors.toList());
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            Product newProduct =  productService.createProduct(productDTO);
-            return ResponseEntity.ok(newProduct);
-        } catch (Exception e){
+            // Gọi service với thumbnailFile và files
+            Product newProduct = productService.createProduct(productDTO, thumbnailFile, files);
+            return ResponseEntity.ok(ProductResponse.fromProduct(newProduct));
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

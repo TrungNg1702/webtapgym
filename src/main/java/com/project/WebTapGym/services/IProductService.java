@@ -9,10 +9,11 @@ import com.project.WebTapGym.responses.ProductResponse;
 import org.springframework.data.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface IProductService {
-    Product createProduct(ProductDTO productDTO) throws Exception;
+    Product createProduct(ProductDTO productDTO, MultipartFile thumbnailFile, List<MultipartFile> files) throws DataNotFoundException, IOException;
 
     Product getProductById(Long id) throws DataNotFoundException;
 

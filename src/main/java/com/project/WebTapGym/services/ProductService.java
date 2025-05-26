@@ -39,19 +39,53 @@ public class ProductService implements IProductService {
 
     @Override
     @Transactional
-    public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
-         Category existingCategory = categoryRepository.findById(productDTO.getCategoryId())
-                .orElseThrow(() -> new DataNotFoundException("Category not found" + productDTO.getCategoryId()));
+    public Product createProduct(ProductDTO productDTO,
+                                 MultipartFile thumbnailFile,
+                                 List<MultipartFile> files) throws DataNotFoundException, IOException {
+        Category existingCategory = categoryRepository.findById(productDTO.getCategoryId())
+                .orElseThrow(() -> new DataNotFoundException("Cannot find category with id: " + productDTO.getCategoryId()));
 
-        Product newProduct = Product
-                .builder()
+        Product newProduct = Product.builder()
                 .name(productDTO.getName())
                 .price(productDTO.getPrice())
-                .thumbnail(productDTO.getThumbnail())
                 .description(productDTO.getDescription())
                 .category(existingCategory)
                 .build();
-        return productRepository.save(newProduct);
+
+        // Xử lý Thumbnail File
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            String thumbnailFileName = storeFile(thumbnailFile);
+            newProduct.setThumbnail(thumbnailFileName);
+        }
+
+        // Lưu Product trước để có ID
+        newProduct = productRepository.save(newProduct);
+
+        // Xử lý các ảnh phụ (ProductImage)
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (file.getSize() == 0) {
+                    continue;
+                }
+                // Kiểm tra kích thước file và định dạng
+                if (file.getSize() > 10 * 1024 * 1024) {
+                    throw new IOException("File is too large! Maximum size is 10MB");
+                }
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    throw new IOException("File must be an image");
+                }
+
+                String filename = storeFile(file); // Lưu file ảnh phụ
+                ProductImage productImage = ProductImage.builder()
+                        .product(newProduct)
+                        .imageUrl(filename)
+                        .build();
+                productImageRepository.save(productImage);
+            }
+        }
+
+        return newProduct;
     }
 
     @Override
