@@ -213,24 +213,28 @@ public class ProductController {
 
     @PutMapping(value = "/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> updateProduct(
-            @PathVariable("id") Long productId,
+            @PathVariable("id") Long id,
             @Valid @RequestPart("product") ProductDTO productDTO,
-            BindingResult result,
+            BindingResult bindingResult,
             @RequestPart(value = "thumbnailFile", required = false) MultipartFile thumbnailFile,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
         try {
-            if (result.hasErrors()) {
-                List<String> errorMessages = result.getFieldErrors()
+            if (bindingResult.hasErrors()) {
+                List<String> errorMessages = bindingResult.getFieldErrors()
                         .stream()
                         .map(FieldError::getDefaultMessage)
-                        .toList();
+                        .collect(Collectors.toList());
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            Product updatedProduct = productService.updateProductWithImages(productId, productDTO, thumbnailFile, files);
+            Product updatedProduct = productService.updateProductWithImages(id, productDTO, thumbnailFile, files);
             return ResponseEntity.ok(ProductResponse.from(updatedProduct));
-        } catch (Exception e) {
+        } catch (DataNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Error uploading file: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("An unexpected error occurred: " + e.getMessage());
         }
     }
 

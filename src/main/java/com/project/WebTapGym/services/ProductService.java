@@ -224,42 +224,41 @@ public class ProductService implements IProductService {
         // Them anh moi
         String firstNewImageFileName = null;
 
-        if(productDTO.getDeleteImageIds() != null && !productDTO.getDeleteImageIds().isEmpty()){
-            int currentImageCount = productImageRepository.findByProductId(productId).size();
+        if (files != null && !files.isEmpty()) {
+            // Lấy danh sách ảnh hiện có (đã được tải bởi findByIdWithImages)
+            List<ProductImage> currentImages = existingProduct.getProductImages();
+            int currentImageCount = (currentImages != null) ? currentImages.size() : 0;
 
-            if ((currentImageCount + files.size()) > ProductImage.MAXIMUM_IMAGE_PER_PRODUCT) {
-                throw new InvalidParamException("Tổng số ảnh không được vượt quá " + ProductImage.MAXIMUM_IMAGE_PER_PRODUCT + " (sau khi xóa và thêm mới)");
+            if (currentImageCount + files.size() > 5) { // Giả sử giới hạn 5 ảnh phụ
+                throw new IOException("Number of product images must be less than 5");
             }
-
             for (MultipartFile file : files) {
-                if (file.getSize() == 0) {
+                if (file.isEmpty()) {
                     continue;
-                }
-                if (file.getSize() > 10 * 1024 * 1024) {
-                    throw new InvalidParamException("File size must be less than 10MB");
                 }
                 String contentType = file.getContentType();
                 if (contentType == null || !contentType.startsWith("image/")) {
-                    throw new InvalidParamException("File must be an image");
+                    throw new IOException("File must be an image");
+                }
+                if (file.getSize() > 10 * 1024 * 1024) { // Kích thước tối đa 10MB
+                    throw new IOException("File is too large! Maximum size is 10MB");
                 }
 
-                String fileName = storeFile(file); // Gọi phương thức lưu file
-                if (firstNewImageFileName == null) {
-                    firstNewImageFileName = fileName;
-                }
-
-                createProductImage(productId, ProductImageDTO.builder().imageUrl(fileName).build());
+                String filename = storeFile(file); // Lưu file
+                ProductImage newProductImage = ProductImage.builder()
+                        .product(existingProduct)
+                        .imageUrl(filename)
+                        .build();
+                productImageRepository.save(newProductImage); // Lưu vào DB
+                // Không cần thêm vào existingProduct.getProductImages() vì @Transactional
+                // và fetchType.LAZY sẽ tải lại khi cần, hoặc findByIdWithImages cuối cùng sẽ làm.
             }
-
-            // Cập nhật thumbnail của sản phẩm nếu có ảnh mới được upload
-            // và sản phẩm hiện tại chưa có thumbnail HOẶC thumbnail luôn là ảnh đầu tiên của các ảnh mới
-            if (firstNewImageFileName != null && (existingProduct.getThumbnail() == null || existingProduct.getThumbnail().isEmpty())) {
-                existingProduct.setThumbnail(firstNewImageFileName);
-            }
-
         }
 
-        return productRepository.save(existingProduct);
+        Product savedProduct = productRepository.save(existingProduct);
+
+        return productRepository.findByIdWithImages(savedProduct.getId())
+                .orElse(savedProduct);
     }
     private String storeFile(MultipartFile file) throws IOException {
         if (!isImageFile(file) || file.getOriginalFilename() == null) {
