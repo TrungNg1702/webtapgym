@@ -7,6 +7,10 @@ import com.project.WebTapGym.models.ExerciseVideo;
 import com.project.WebTapGym.responses.ExerciseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.*;
+import org.springframework.core.io.Resource; // Thêm import này
+import org.springframework.web.multipart.MultipartFile; // Thêm import này
+
+import java.util.List;
 
 
 public interface IExerciseService {
@@ -24,8 +28,10 @@ public interface IExerciseService {
 
     ExerciseVideo createExerciseVideo(
             Long exerciseId,
-            ExerciseVideoDTO dto) throws Exception;
+            MultipartFile file) throws Exception;
 
+    List<ExerciseResponse> getExercisesByMainMuscleGroup(Long muscleMainGroupId);
 
-
+    // THÊM PHƯƠNG THỨC NÀY ĐỂ LẤY VIDEO RA
+    Resource getVideoAsResource(String fileName) throws Exception; // Phương thức để tải video dưới dạng Resource
 }

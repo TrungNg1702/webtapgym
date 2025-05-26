@@ -6,29 +6,41 @@ import com.project.WebTapGym.dtos.UserUpdateDTO;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.Role;
 import com.project.WebTapGym.models.User;
+import com.project.WebTapGym.repositories.ExerciseRepository;
 import com.project.WebTapGym.repositories.RoleRepository;
 import com.project.WebTapGym.repositories.UserRepository;
+import com.project.WebTapGym.responses.ExerciseResponse;
 import com.project.WebTapGym.responses.LoginResponse;
+import com.project.WebTapGym.responses.UserResponse;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class UserService implements IUserService {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
+    private ExerciseRepository exerciseRepository;
 //    private final SecurityConfig securityConfig;
+
+
     private final AuthenticationManager authenticationManager;
     @Override
+    @Transactional
     public User createUser(UserDTO userDTO) {
         String phone = userDTO.getPhone();
         if(userRepository.existsByPhone(phone)) {
@@ -49,6 +61,7 @@ public class UserService implements IUserService {
 //                .subscriptionMonths(userDTO.getSubscriptionMonths())
 //                .registrationDate(LocalDateTime.now())
 //                .expirationDate(LocalDateTime.now().plusMonths(userDTO.getSubscriptionMonths()))
+                .active(true)
                 .build();
 
         Role role = roleRepository.findById(userDTO.getRoleId())
@@ -58,7 +71,7 @@ public class UserService implements IUserService {
         String password = userDTO.getPassword();
         String encodePassword = passwordEncoder.encode(password);
         newUser.setPassword(encodePassword);
-        
+
         return userRepository.save(newUser);
     }
 
@@ -91,6 +104,13 @@ public class UserService implements IUserService {
 
         User user = optionalUser.get();
 
+        if (!user.isActive()) {
+            String banMessage = user.getBanReason() != null && !user.getBanReason().isEmpty()
+                    ? "Tài khoản đã bị vô hiệu hóa. Lý do: " + user.getBanReason() + ". Vui lòng liên hệ admin để được hỗ trợ."
+                    : "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ admin để được hỗ trợ.";
+            throw new DataNotFoundException(banMessage);
+        }
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new DataNotFoundException("Wrong phone or password");
         }
@@ -107,8 +127,54 @@ public class UserService implements IUserService {
         );
     }
 
+    @Override
+    public Page<UserResponse> getAllUser(PageRequest pageRequest) {
+        return userRepository
+                .findAll(pageRequest)
+                .map(UserResponse::from);
+    }
+
+    public void deleteUser(Long userId, String banReason) {
+        logger.info("Deleting user with ID: {}, banReason: {}", userId, banReason);
+        User user = null;
+        try {
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new DataNotFoundException("User not found"));
+        } catch (DataNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        user.setActive(false);
+
+        if (banReason != null && !banReason.trim().isEmpty()) {
+            user.setBanReason(banReason.trim());
+        } else {
+            logger.warn("Ban reason is null or empty for user ID: {}", userId);
+            user.setBanReason("Không có lý do cụ thể");
+        }
+        userRepository.save(user);
+        logger.info("User ID: {} banned successfully with banReason: {}", userId, user.getBanReason());
+    }
+
+    //  ghi lại thông tin về người dùng được mở khóa
+    @Override
+    public User unlockUser(Long userId) throws DataNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User khong ton tai"));
+
+        if(user.isActive()){
+            logger.warn("Đang cố gắng mở khóa một tài khoản User đang hoạt động: {}", userId);
+        }
+
+        user.setActive(true);
+        user.setBanReason(null);
+        User unlockedUser = userRepository.save(user);
+        logger.info("User with ID {} unlocked successfully", userId);
+        return unlockedUser;
+    }
+
 
     @Override
+    @Transactional
     public User updateUser(Long userId, UserUpdateDTO userUpdateDTO) throws DataNotFoundException {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("User not found"));

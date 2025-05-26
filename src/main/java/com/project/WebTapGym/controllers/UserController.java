@@ -1,14 +1,19 @@
 package com.project.WebTapGym.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.WebTapGym.exceptions.DataNotFoundException;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.repositories.UserRepository;
 import com.project.WebTapGym.responses.LoginResponse;
+import com.project.WebTapGym.responses.UserListResponse;
 import com.project.WebTapGym.responses.UserResponse;
 import com.project.WebTapGym.services.IUserService;
 import com.project.WebTapGym.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -47,7 +52,6 @@ public class UserController {
                return ResponseEntity.badRequest().body("Password không khớp!");
            }
            User user = userService.createUser(userDTO);
-//           return ResponseEntity.ok().body("Đăng ký thành công!");
            return ResponseEntity.ok(user);
        } catch (Exception e){
            return ResponseEntity.badRequest().body(e.getMessage());
@@ -69,6 +73,17 @@ public class UserController {
         }
     }
 
+    @PutMapping("/{id}/unlock")
+    public ResponseEntity<?> unlockUser(
+            @PathVariable("id") Long userID
+    ){
+        try{
+            User unlockUser = userService.unlockUser(userID);
+            return ResponseEntity.ok("Đã mở khóa thành công User có ID là " + userID);
+        } catch (DataNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(
@@ -95,5 +110,47 @@ public class UserController {
         }
     }
 
+    @GetMapping("")
+    public ResponseEntity<UserListResponse> getUsers(
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit
+    ){
+        PageRequest pageRequest = PageRequest.of(page, limit,
+                Sort.by("createdAt").descending());
 
+        Page<UserResponse> userPage = userService.getAllUser(pageRequest);
+
+        int totalPages = userPage.getTotalPages();
+        List<UserResponse> users = userPage.getContent();
+
+        return ResponseEntity.ok(UserListResponse.builder()
+                        .users(users)
+                        .totalPages(totalPages)
+                .build());
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId, @RequestBody BanRequest banRequest) {
+        try {
+            String banReason = banRequest != null && banRequest.getBanReason() != null
+                    ? banRequest.getBanReason()
+                    : null;
+            userService.deleteUser(userId, banReason);
+            return ResponseEntity.ok("User banned successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+}
+class BanRequest {
+    @JsonProperty("ban_reason")
+    private String banReason;
+
+    public String getBanReason() {
+        return banReason;
+    }
+
+    public void setBanReason(String banReason) {
+        this.banReason = banReason;
+    }
 }

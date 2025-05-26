@@ -2,17 +2,25 @@ package com.project.WebTapGym.controllers;
 
 import com.project.WebTapGym.dtos.OrderDTO;
 import com.project.WebTapGym.models.Order;
+import com.project.WebTapGym.responses.OrderListResponse;
 import com.project.WebTapGym.responses.OrderResponse;
 import com.project.WebTapGym.services.IOrderService;
 import com.project.WebTapGym.services.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -34,7 +42,7 @@ public class OrderController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
 
-            OrderResponse orderResponse = orderService.createOrder(orderDTO);
+            Order orderResponse = orderService.createOrder(orderDTO);
             return ResponseEntity.ok(orderResponse);
          } catch (Exception e){
              return ResponseEntity.badRequest().body(e.getMessage());
@@ -47,14 +55,27 @@ public class OrderController {
             @RequestParam("page") int page,
             @RequestParam("limit") int limit
     ){
-        return ResponseEntity.ok("asdasd");
+        PageRequest pageRequest = PageRequest.of(page, limit,
+                Sort.by("id").descending());
+
+        Page<OrderResponse> orders = orderService.getAllOrders(pageRequest);
+
+        int totalPages = orders.getTotalPages();
+        List<OrderResponse> orderResponses = orders.getContent();
+
+
+
+        return ResponseEntity.ok(OrderListResponse.builder()
+                        .orders(orderResponses)
+                        .totalPages(totalPages)
+                .build());
     }
 
     @GetMapping("{id}")
     public ResponseEntity<?> getOrderById(@Valid @PathVariable("id") Long orderId){
         try{
             Order existing = orderService.getOrder(orderId);
-            return ResponseEntity.ok(existing);
+            return ResponseEntity.ok(OrderResponse.fromOrder(existing));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -62,17 +83,35 @@ public class OrderController {
 
 
     @GetMapping("/user/{user_id}")
-    public ResponseEntity<?> getOrdersByUserId(
-            @Valid @PathVariable("user_id") Long userId)
-    {
-        try
-        {
+    public ResponseEntity<?> getOrdersByUserId(@PathVariable("user_id") Long userId) {
+        try {
             List<Order> orders = orderService.findByUserId(userId);
-            return ResponseEntity.ok(orders);
-        } catch (Exception e)
-        {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            // Ánh xạ từng Order sang OrderResponse
+            List<OrderResponse> orderResponses = orders.stream()
+                    .map(OrderResponse::fromOrder)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(orderResponses);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage());
         }
+    }
+
+    // Lay doanh thu
+    @GetMapping("/revenue/monthly")
+    public ResponseEntity<Map<String, Double>> getMothlyRevenue(
+            @RequestParam(name = "year", required = false) Integer year
+    ){
+        Map<String, Double> revenue;
+
+        if (year != null){
+            revenue = orderService.getMonthlyRevenueByYear(year);
+        } else {
+            revenue = orderService.getMonthlyRevenue();
+        }
+        return ResponseEntity.ok(revenue);
     }
 
 
@@ -87,6 +126,18 @@ public class OrderController {
             return ResponseEntity.ok(existingOrder);
         } catch (Exception e)
         {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam("status") String newStatus) {
+        try {
+            Order updatedOrder = orderService.updateOrderStatus(id, newStatus);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

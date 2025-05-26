@@ -15,6 +15,9 @@ import lombok.*;
 @NoArgsConstructor
 public class ExerciseResponse extends BaseResponse{
 
+    @JsonProperty("exercise_id")
+    private Long id;
+
     @JsonProperty("exercise_name")
     private String exerciseName;
 
@@ -48,6 +51,7 @@ public class ExerciseResponse extends BaseResponse{
 
     public static ExerciseResponse fromExercise (Exercise exercise){
         ExerciseResponse exerciseResponse = ExerciseResponse.builder()
+                .id(exercise.getId())
                 .exerciseName(exercise.getName())
                 .muscleGroupId(exercise.getMuscleGroup().getId())
                 .muscleSection(exercise.getMuscleSection())
