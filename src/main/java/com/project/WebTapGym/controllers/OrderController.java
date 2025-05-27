@@ -148,4 +148,10 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.ok("Xoa don hang thanh cong");
     }
+
+    @DeleteMapping("/{id}/admin")
+    public ResponseEntity<?> deleteOrderAdmin(@Valid @PathVariable Long id){
+        orderService.deleteOrderByAdmin(id);
+        return ResponseEntity.ok("Xoa don hang thanh cong");
+    }
 }

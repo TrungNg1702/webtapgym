@@ -207,4 +207,15 @@ public class OrderService implements IOrderService {
         }
         return mothlyRevenue;
     }
+
+    @Override
+    public void deleteOrderByAdmin(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        if (order != null){
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+        }
+    }
+
 }

@@ -28,4 +28,6 @@ public interface IOrderService {
     Map<String, Double> getMonthlyRevenue();
 
     Map<String, Double> getMonthlyRevenueByYear(int year);
+
+    void deleteOrderByAdmin(Long id);
 }
