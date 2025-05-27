@@ -158,10 +158,6 @@ public class OrderService implements IOrderService {
 
         order.setStatus(newStatus);
 
-        if (newStatus.equals(OrderStatus.CANCELLED)) {
-            order.setActive(false);
-        }
-
         return orderRepository.save(order);
     }
 
