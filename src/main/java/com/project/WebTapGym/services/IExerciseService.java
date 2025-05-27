@@ -24,6 +24,8 @@ public interface IExerciseService {
 
     void deleteExercise(long id);
 
+    void deleteExerciseVideo(long exerciseVideoId);
+
     boolean existsByName(String exerciseName);
 
     ExerciseVideo createExerciseVideo(

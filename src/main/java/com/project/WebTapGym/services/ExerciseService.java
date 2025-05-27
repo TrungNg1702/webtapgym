@@ -132,6 +132,27 @@ public class ExerciseService implements IExerciseService {
     }
 
     @Override
+    @Transactional
+    public void deleteExerciseVideo(long exerciseVideoId) {
+        Optional<ExerciseVideo> optionalExerciseVideo = exerciseVideoRepository.findById(exerciseVideoId);
+        if (optionalExerciseVideo.isPresent()) {
+            ExerciseVideo exerciseVideo = optionalExerciseVideo.get();
+            try {
+                deleteFile(exerciseVideo.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY); // Xóa file thực tế
+                exerciseVideoRepository.delete(exerciseVideo); // Xóa bản ghi trong database
+            } catch (Exception e) {
+                System.err.println("Failed to delete exercise video with ID " + exerciseVideoId + ": " + e.getMessage());
+                throw new RuntimeException("Error deleting exercise video file or record.", e); // Re-throw để client biết lỗi
+            }
+        } else {
+            throw new RuntimeException("Exercise Video with ID " + exerciseVideoId + " not found.");
+        }
+    }
+
+
+
+
+    @Override
     public boolean existsByName(String exerciseName) {
         return exerciseRepository.existsByName(exerciseName);
     }

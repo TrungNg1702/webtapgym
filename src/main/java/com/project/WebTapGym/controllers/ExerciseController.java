@@ -158,6 +158,18 @@ public class ExerciseController {
 
     }
 
+    @DeleteMapping("/{id}/video")
+    public ResponseEntity<String> deleteVideoById(
+            @PathVariable("id") Long exerciseVideoId
+    ){
+        try{
+            exerciseService.deleteExerciseVideo(exerciseVideoId);
+            return ResponseEntity.ok(String.format("Deleted video with id: %d", exerciseVideoId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateExercise(
