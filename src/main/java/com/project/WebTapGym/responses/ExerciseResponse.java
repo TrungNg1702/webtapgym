@@ -46,14 +46,16 @@ public class ExerciseResponse extends BaseResponse{
     @JsonProperty("rest_between_sets")
     private Long restBetweenSets;
 
-    @JsonProperty("video_urls")
-    private List<String> videoUrls; // Thêm trường này để trả về danh sách các URL video
+    // Thay đổi từ List<String> sang List<ExerciseVideoResponse>
+    @JsonProperty("videos") // Đổi tên thuộc tính từ video_urls sang videos
+    private List<ExerciseVideoResponse> videos;
 
     public static ExerciseResponse fromExercise (Exercise exercise){
         ExerciseResponse exerciseResponse = ExerciseResponse.builder()
                 .id(exercise.getId())
                 .exerciseName(exercise.getName())
-                .muscleGroupId(exercise.getMuscleGroup().getId())
+                // Đảm bảo muscleGroup không null trước khi gọi getId()
+                .muscleGroupId(exercise.getMuscleGroup() != null ? exercise.getMuscleGroup().getId() : null)
                 .muscleSection(exercise.getMuscleSection())
                 .techniqueDescription(exercise.getTechniqueDescription())
                 .equipmentRequired(exercise.getEquipmentRequired())
@@ -61,8 +63,9 @@ public class ExerciseResponse extends BaseResponse{
                 .recommendedSets(exercise.getRecommendedSets())
                 .recommendedReps(exercise.getRecommendedReps())
                 .restBetweenSets(exercise.getRestBetweenSets())
-                .videoUrls(exercise.getExerciseVideos().stream() // Lấy danh sách URL video
-                        .map(ExerciseVideo::getVideoUrl)
+                // Ánh xạ từ ExerciseVideo sang ExerciseVideoResponse
+                .videos(exercise.getExerciseVideos().stream()
+                        .map(ExerciseVideoResponse::fromExerciseVideo)
                         .collect(Collectors.toList()))
                 .build();
         exerciseResponse.setCreatedAt(exercise.getCreatedAt());
