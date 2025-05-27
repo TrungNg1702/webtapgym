@@ -11,16 +11,14 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-
 public class ExerciseVideo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Thêm fetch = FetchType.LAZY để tránh N+1 query nếu không cần thiết
     @JoinColumn(name = "exercise_id")
     @JsonIgnore
-
     private Exercise exercise;
 
     @Column(name = "video_url", length = 300)

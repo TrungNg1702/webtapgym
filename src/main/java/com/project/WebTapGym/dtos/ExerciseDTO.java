@@ -14,7 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 public class ExerciseDTO {
 
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = "Tên bài tập là bắt buộc.")
     @JsonProperty("exercise_name")
     private String exerciseName;
 
@@ -24,7 +24,7 @@ public class ExerciseDTO {
     @JsonProperty("muscle_section")
     private String muscleSection;
 
-    @NotBlank(message = "This part cannot be blank")
+    @NotBlank(message = "Mô tả kỹ thuật không được để trống.")
     @JsonProperty("technique_description")
     private String techniqueDescription;
 
@@ -43,9 +43,6 @@ public class ExerciseDTO {
     @Max(value = 13, message = "Số rep lớn nhất nên thực hiện là 13 reps")
     @JsonProperty("recommended_reps")
     private Long recommendedReps;
-
-    @JsonProperty("video_url")
-    private String videoUrl;
 
     @JsonProperty("rest_between_sets")
     private Long restBetweenSets;

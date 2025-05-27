@@ -1,12 +1,10 @@
 package com.project.WebTapGym.controllers;
 
 import com.project.WebTapGym.dtos.ExerciseDTO;
-import com.project.WebTapGym.dtos.ExerciseVideoDTO;
 import com.project.WebTapGym.models.Exercise;
 import com.project.WebTapGym.models.ExerciseVideo;
 import com.project.WebTapGym.responses.ExerciseListResponse;
 import com.project.WebTapGym.responses.ExerciseResponse;
-import com.project.WebTapGym.services.ExerciseService;
 import com.project.WebTapGym.services.IExerciseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
 
 @RestController
 @RequestMapping("${api.prefix}/exercises")
@@ -40,7 +31,6 @@ import java.util.UUID;
 public class ExerciseController {
 
     private final IExerciseService exerciseService;
-
 
     @PostMapping("")
     public ResponseEntity<?> createExercise(
@@ -57,7 +47,7 @@ public class ExerciseController {
             }
 
             exerciseService.createExercise(exerciseDTO);
-            return ResponseEntity.ok("tao moi thanh cong");
+            return ResponseEntity.ok("Tạo mới bài tập thành công.");
         } catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -70,13 +60,13 @@ public class ExerciseController {
     {
         try{
             if (file.isEmpty()){
-                return ResponseEntity.badRequest().body("File is empty");
+                return ResponseEntity.badRequest().body("Tệp tin video không được để trống.");
             }
             if(exerciseId == null){
-                return ResponseEntity.badRequest().body("Exercise id is null");
+                return ResponseEntity.badRequest().body("ID bài tập không được để trống.");
             }
             if (!file.getContentType().startsWith("video/")) {
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File must be a video");
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("Tệp tin phải là định dạng video.");
             }
 
             ExerciseVideo savedVideo = exerciseService.createExerciseVideo(exerciseId, file);
@@ -105,7 +95,6 @@ public class ExerciseController {
             return ResponseEntity.notFound().build(); // Trả về 404 nếu không tìm thấy file hoặc lỗi khác
         }
     }
-
 
     @GetMapping("")
     public ResponseEntity<ExerciseListResponse> getExercises(
@@ -151,7 +140,7 @@ public class ExerciseController {
     {
         try{
             exerciseService.deleteExercise(exerciseId);
-            return ResponseEntity.ok(String.format("Deleted exercise with id: %d", exerciseId));
+            return ResponseEntity.ok(String.format("Đã xóa bài tập với ID: %d", exerciseId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -164,7 +153,7 @@ public class ExerciseController {
     ){
         try{
             exerciseService.deleteExerciseVideo(exerciseVideoId);
-            return ResponseEntity.ok(String.format("Deleted video with id: %d", exerciseVideoId));
+            return ResponseEntity.ok(String.format("Đã xóa video với ID: %d", exerciseVideoId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

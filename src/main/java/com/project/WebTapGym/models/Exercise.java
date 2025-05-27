@@ -3,6 +3,8 @@ package com.project.WebTapGym.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "exercises")
 @Getter
@@ -23,7 +25,7 @@ public class Exercise extends BaseEntity {
     @Column(name = "muscle_section", length = 100)
     private String muscleSection;
 
-    @Column(name = "technique_description")
+    @Column(name = "technique_description", columnDefinition = "TEXT") // Có thể dùng TEXT cho các mô tả dài
     private String techniqueDescription;
 
     @Column(name = "equipment_required", length = 255)
@@ -41,9 +43,6 @@ public class Exercise extends BaseEntity {
     @Column(name = "rest_between_sets")
     private Long restBetweenSets;
 
-    @Column(name = "video_url")
-    private String videoUrl;
-
     @ManyToOne
     @JoinColumn(name = "muscle_group_id")
     private MuscleGroup muscleGroup;
@@ -51,4 +50,7 @@ public class Exercise extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "muscle_main_groups_id")
     private MuscleMainGroup muscleMainGroup;
+
+    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExerciseVideo> exerciseVideos;
 }

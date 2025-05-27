@@ -2,10 +2,11 @@ package com.project.WebTapGym.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.WebTapGym.models.Exercise;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import com.project.WebTapGym.models.ExerciseVideo;
 import lombok.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Builder
@@ -45,9 +46,8 @@ public class ExerciseResponse extends BaseResponse{
     @JsonProperty("rest_between_sets")
     private Long restBetweenSets;
 
-    @JsonProperty("video_url")
-    private String videoUrl;
-
+    @JsonProperty("video_urls")
+    private List<String> videoUrls; // Thêm trường này để trả về danh sách các URL video
 
     public static ExerciseResponse fromExercise (Exercise exercise){
         ExerciseResponse exerciseResponse = ExerciseResponse.builder()
@@ -61,7 +61,9 @@ public class ExerciseResponse extends BaseResponse{
                 .recommendedSets(exercise.getRecommendedSets())
                 .recommendedReps(exercise.getRecommendedReps())
                 .restBetweenSets(exercise.getRestBetweenSets())
-                .videoUrl(exercise.getVideoUrl())
+                .videoUrls(exercise.getExerciseVideos().stream() // Lấy danh sách URL video
+                        .map(ExerciseVideo::getVideoUrl)
+                        .collect(Collectors.toList()))
                 .build();
         exerciseResponse.setCreatedAt(exercise.getCreatedAt());
         exerciseResponse.setUpdatedAt(exercise.getUpdatedAt());

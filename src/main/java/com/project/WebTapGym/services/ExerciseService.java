@@ -1,7 +1,6 @@
 package com.project.WebTapGym.services;
 
 import com.project.WebTapGym.dtos.ExerciseDTO;
-import com.project.WebTapGym.dtos.ExerciseVideoDTO;
 import com.project.WebTapGym.models.Exercise;
 import com.project.WebTapGym.models.ExerciseVideo;
 import com.project.WebTapGym.models.MuscleGroup;
@@ -40,21 +39,17 @@ public class ExerciseService implements IExerciseService {
     private final MuscleGroupsRepository muscleGroupsRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
 
-    // Định nghĩa thư mục gốc cho các uploads
-    @Value("${upload.dir:uploads}") // Đọc từ application.properties, mặc định là "uploads"
+    @Value("${upload.dir:uploads}")
     private String uploadDir;
 
-    // Định nghĩa thư mục con cụ thể cho video bài tập
     private static final String EXERCISE_VIDEO_SUBDIRECTORY = "exercise_videos";
-
 
     @Override
     @Transactional
     public Exercise createExercise(ExerciseDTO exerciseDTO) {
         MuscleGroup existingMuscleGroup = muscleGroupsRepository
                 .findById(exerciseDTO.getMuscleGroupId())
-                .orElseThrow(() -> new RuntimeException("Muscle Group not found"));
-
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm cơ."));
 
         Exercise newExercise = Exercise.builder()
                 .name(exerciseDTO.getExerciseName())
@@ -66,7 +61,6 @@ public class ExerciseService implements IExerciseService {
                 .recommendedSets(exerciseDTO.getRecommendedSets())
                 .recommendedReps(exerciseDTO.getRecommendedReps())
                 .restBetweenSets(exerciseDTO.getRestBetweenSets())
-                .videoUrl(exerciseDTO.getVideoUrl()) // Nếu videoUrl được gửi từ DTO
                 .build();
         return exerciseRepository.save(newExercise);
     }
@@ -74,7 +68,7 @@ public class ExerciseService implements IExerciseService {
     @Override
     public Exercise getExerciseById(long exerciseId) {
         return exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài tập."));
     }
 
     @Override
@@ -91,14 +85,14 @@ public class ExerciseService implements IExerciseService {
         if (existingExercise != null) {
             existingExercise.setName(exerciseDTO.getExerciseName());
             existingExercise.setMuscleGroup(muscleGroupsRepository.findById(exerciseDTO.getMuscleGroupId())
-                    .orElseThrow(() -> new RuntimeException("Muscle Group not found")));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhóm cơ.")));
             existingExercise.setMuscleSection(exerciseDTO.getMuscleSection());
             existingExercise.setTechniqueDescription(exerciseDTO.getTechniqueDescription());
             existingExercise.setEquipmentRequired(exerciseDTO.getEquipmentRequired());
             existingExercise.setTargetMusclePercentage(exerciseDTO.getTargetMusclePercentage());
             existingExercise.setRecommendedSets(exerciseDTO.getRecommendedSets());
             existingExercise.setRecommendedReps(exerciseDTO.getRecommendedReps());
-            existingExercise.setVideoUrl(exerciseDTO.getVideoUrl()); // Cập nhật URL video từ DTO
+            existingExercise.setRestBetweenSets(exerciseDTO.getRestBetweenSets());
 
             return exerciseRepository.save(existingExercise);
         }
@@ -110,24 +104,18 @@ public class ExerciseService implements IExerciseService {
     public void deleteExercise(long id) {
         Optional<Exercise> optionalExercise = exerciseRepository.findById(id);
         optionalExercise.ifPresent(exercise -> {
-            // Xóa video và các ExerciseVideo liên quan nếu có
-            if (exercise.getVideoUrl() != null && !exercise.getVideoUrl().isEmpty()) {
-                try {
-                    deleteFile(exercise.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY); // Sử dụng phương thức xóa file nội bộ
-                } catch (Exception e) {
-                    System.err.println("Failed to delete video file for exercise " + id + ": " + e.getMessage());
-                }
-            }
+            // Xóa tất cả các ExerciseVideo liên quan đến Exercise
             List<ExerciseVideo> relatedVideos = exerciseVideoRepository.findByExerciseId(id);
             for (ExerciseVideo ev : relatedVideos) {
                 try {
-                    deleteFile(ev.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY); // Sử dụng phương thức xóa file nội bộ
-                } catch (Exception e) {
-                    System.err.println("Failed to delete exercise video file " + ev.getVideoUrl() + ": " + e.getMessage());
+                    deleteFile(ev.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY);
+                } catch (IOException e) {
+                    System.err.println("Không thể xóa tệp video bài tập " + ev.getVideoUrl() + ": " + e.getMessage());
+                    throw new RuntimeException("Lỗi khi xóa tệp video bài tập liên quan " + ev.getVideoUrl(), e);
                 }
                 exerciseVideoRepository.delete(ev);
             }
-            exerciseRepository.delete(exercise);
+            exerciseRepository.delete(exercise); // Xóa bản ghi Exercise
         });
     }
 
@@ -138,19 +126,16 @@ public class ExerciseService implements IExerciseService {
         if (optionalExerciseVideo.isPresent()) {
             ExerciseVideo exerciseVideo = optionalExerciseVideo.get();
             try {
-                deleteFile(exerciseVideo.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY); // Xóa file thực tế
-                exerciseVideoRepository.delete(exerciseVideo); // Xóa bản ghi trong database
-            } catch (Exception e) {
-                System.err.println("Failed to delete exercise video with ID " + exerciseVideoId + ": " + e.getMessage());
-                throw new RuntimeException("Error deleting exercise video file or record.", e); // Re-throw để client biết lỗi
+                deleteFile(exerciseVideo.getVideoUrl(), EXERCISE_VIDEO_SUBDIRECTORY);
+                exerciseVideoRepository.delete(exerciseVideo);
+            } catch (IOException e) {
+                System.err.println("Không thể xóa video bài tập với ID " + exerciseVideoId + ": " + e.getMessage());
+                throw new RuntimeException("Lỗi khi xóa tệp video bài tập hoặc bản ghi.", e);
             }
         } else {
-            throw new RuntimeException("Exercise Video with ID " + exerciseVideoId + " not found.");
+            throw new RuntimeException("Không tìm thấy video bài tập với ID " + exerciseVideoId + ".");
         }
     }
-
-
-
 
     @Override
     public boolean existsByName(String exerciseName) {
@@ -161,19 +146,14 @@ public class ExerciseService implements IExerciseService {
     @Transactional
     public ExerciseVideo createExerciseVideo(
             Long exerciseId,
-            MultipartFile file) throws Exception {
+            MultipartFile file) throws IOException {
 
         Exercise existingExercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài tập."));
 
-        // *** LOGIC LƯU FILE ĐƯỢC DI CHUYỂN TRỰC TIẾP VÀO ĐÂY ***
-        String fileName = storeFile(file, EXERCISE_VIDEO_SUBDIRECTORY); // Gọi phương thức lưu file nội bộ
+        String fileName = storeFile(file, EXERCISE_VIDEO_SUBDIRECTORY);
 
-        // Lưu tên file video vào trường video_url của Exercise (nếu bạn chỉ có 1 video chính)
-        existingExercise.setVideoUrl(fileName);
-        exerciseRepository.save(existingExercise);
-
-        // Hoặc nếu bạn muốn lưu vào bảng ExerciseVideo riêng (cho nhiều video hoặc video phụ)
+        // Chỉ lưu vào bảng ExerciseVideo
         ExerciseVideo exerciseVideo = ExerciseVideo.builder()
                 .exercise(existingExercise)
                 .videoUrl(fileName)
@@ -191,19 +171,17 @@ public class ExerciseService implements IExerciseService {
                 .collect(Collectors.toList());
     }
 
-    // THÊM PHƯƠNG THỨC NÀY ĐỂ TRUYỀN VIDEO RA
     @Override
-    public Resource getVideoAsResource(String fileName) throws Exception {
-        return loadFileAsResource(fileName, EXERCISE_VIDEO_SUBDIRECTORY); // Gọi phương thức tải file nội bộ
+    public Resource getVideoAsResource(String fileName) throws IOException {
+        return loadFileAsResource(fileName, EXERCISE_VIDEO_SUBDIRECTORY);
     }
-
 
     private String storeFile(MultipartFile file, String subDirectory) throws IOException {
         String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         String fileName = UUID.randomUUID() + "_" + originalFilename;
 
         Path uploadPath = Paths.get(uploadDir, subDirectory).toAbsolutePath().normalize();
-        Files.createDirectories(uploadPath); // Tạo thư mục nếu chưa tồn tại
+        Files.createDirectories(uploadPath);
 
         Path targetLocation = uploadPath.resolve(fileName);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -212,33 +190,38 @@ public class ExerciseService implements IExerciseService {
     }
 
     private Path getFilePath(String fileName, String subDirectory) {
-        Path filePath = Paths.get(uploadDir, subDirectory, fileName).toAbsolutePath().normalize();
-        return filePath;
+        return Paths.get(uploadDir, subDirectory, fileName).toAbsolutePath().normalize();
     }
 
-
-    private Resource loadFileAsResource(String fileName, String subDirectory) throws Exception {
+    private Resource loadFileAsResource(String fileName, String subDirectory) throws IOException {
         try {
             Path filePath = getFilePath(fileName, subDirectory);
             Resource resource = new UrlResource(filePath.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new Exception("File not found or not readable: " + fileName);
+                throw new IOException("Không tìm thấy tệp hoặc không thể đọc: " + fileName);
             }
         } catch (MalformedURLException ex) {
-            throw new Exception("File not found or not readable: " + fileName, ex);
+            throw new IOException("Lỗi khi tạo URL cho tệp: " + fileName, ex);
         }
     }
 
-
-    private void deleteFile(String fileName, String subDirectory) throws Exception {
+    private void deleteFile(String fileName, String subDirectory) throws IOException {
+        if (fileName == null || fileName.isEmpty()) {
+            return;
+        }
         Path filePath = getFilePath(fileName, subDirectory);
         if (Files.exists(filePath)) {
-            Files.delete(filePath);
+            try {
+                Files.delete(filePath);
+            } catch (IOException e) {
+                System.err.println("Không thể xóa tệp " + fileName + ". Lý do: " + e.getMessage());
+                throw e;
+            }
         } else {
-            throw new Exception("File not found: " + fileName);
+            System.out.println("Không tìm thấy tệp để xóa: " + fileName + ". Có thể đã bị xóa trước đó.");
         }
     }
 }
