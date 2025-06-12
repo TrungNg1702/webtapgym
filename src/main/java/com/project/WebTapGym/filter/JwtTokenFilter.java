@@ -129,7 +129,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/order_details/", apiPrefix), "GET"),
                 Pair.of(String.format("%s/order_details/order/", apiPrefix), "GET"),
                 Pair.of(String.format("%s/chatbot", apiPrefix), "POST"),
-                Pair.of(String.format("%s/food-analysis/analyze", apiPrefix), "POST")
+                Pair.of(String.format("%s/food-analysis/analyze", apiPrefix), "POST"),
+                Pair.of(String.format("%s/workout-schedules", apiPrefix), "POST")
 
 
 

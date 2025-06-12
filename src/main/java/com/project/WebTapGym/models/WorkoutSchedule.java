@@ -1,7 +1,10 @@
 package com.project.WebTapGym.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "workout_schedule")
@@ -10,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class WorkoutSchedule extends BaseEntity{
+public class WorkoutSchedule{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,4 +33,14 @@ public class WorkoutSchedule extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userId;
+
+    @ManyToMany
+    @JoinTable(
+            name = "workout_schedule_exercise",
+            joinColumns = @JoinColumn(name = "workout_schedule_id"),
+            inverseJoinColumns = @JoinColumn(name = "exercise_id")
+    )
+    @JsonIgnore
+    private List<Exercise> exercises;
+
 }
