@@ -20,7 +20,8 @@ public class WorkoutScheduleResponse {
     private List<Exercise> exercises;
 
     public static WorkoutScheduleResponse fromWorkoutSchedule(com.project.WebTapGym.models.WorkoutSchedule workoutSchedule) {
-        WorkoutScheduleResponse workoutScheduleResponse =WorkoutScheduleResponse.builder()
+
+        return WorkoutScheduleResponse.builder()
                 .id(workoutSchedule.getId())
                 .dayOfWeek(workoutSchedule.getDayOfWeek())
                 .timeSlot(workoutSchedule.getTimeSlot())
@@ -28,7 +29,5 @@ public class WorkoutScheduleResponse {
                 .duration(workoutSchedule.getDuration())
                 .exercises(workoutSchedule.getExercises())
                 .build();
-
-        return workoutScheduleResponse;
     }
 }
