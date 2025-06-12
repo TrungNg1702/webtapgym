@@ -56,6 +56,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "weight_kg")
     private Float weightKg;
 
+    private String goal;
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;

@@ -2,6 +2,7 @@ package com.project.WebTapGym.services;
 
 import com.project.WebTapGym.dtos.WorkoutScheduleDTO;
 import com.project.WebTapGym.models.WorkoutSchedule;
+import com.project.WebTapGym.responses.WorkoutScheduleChatResponse;
 import com.project.WebTapGym.responses.WorkoutScheduleResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,6 @@ public interface IWorkoutScheduleService
 
     void deleteWorkoutSchedule(Long scheduleId);
 
-    List<WorkoutSchedule> suggestWorkoutSchedule(Long userId, String goal);
+    WorkoutScheduleChatResponse suggestWorkoutSchedule(Long userId, String goal);
 }
 

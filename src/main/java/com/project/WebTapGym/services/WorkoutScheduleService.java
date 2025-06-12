@@ -9,6 +9,7 @@ import com.project.WebTapGym.models.WorkoutSchedule;
 import com.project.WebTapGym.repositories.ExerciseRepository;
 import com.project.WebTapGym.repositories.UserRepository;
 import com.project.WebTapGym.repositories.WorkoutScheduleRepository;
+import com.project.WebTapGym.responses.WorkoutScheduleChatResponse;
 import com.project.WebTapGym.responses.WorkoutScheduleResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,7 +35,7 @@ public class WorkoutScheduleService implements IWorkoutScheduleService
     public WorkoutSchedule createWorkoutSchedule(WorkoutScheduleDTO workoutScheduleDTO) {
         String phone = SecurityContextHolder.getContext().getAuthentication().getName(); // Lấy phone từ SecurityContext
 
-        User user = userRepository.findById(workoutScheduleDTO.getUserId())
+        User user = userRepository.findByPhone(phone)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
 
@@ -74,40 +75,24 @@ public class WorkoutScheduleService implements IWorkoutScheduleService
     }
 
     @Override
-    public List<WorkoutSchedule> suggestWorkoutSchedule(Long userId, String goal) {
-        // gui yeu cau den gemini
-        String message = "Hãy gợi ý lịch tập luyện trong 1 tuần cho người muốn " + goal +
-                ". Mỗi ngày bao gồm: ngày trong tuần, buổi tập (sáng, chiều), loại hình tập luyện (ví dụ: cardio, tạ, nghỉ), và thời lượng (phút). Trả về dưới dạng JSON dạng danh sách.";
+    public WorkoutScheduleChatResponse suggestWorkoutSchedule(Long userId, String goalInput) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String goal = (goalInput != null && !goalInput.isBlank()) ? goalInput : user.getGoal();
+
+        if (goalInput != null && !goalInput.isBlank()) {
+            user.setGoal(goalInput);
+            userRepository.save(user);
+        }
+
+        String message = "Bạn hãy đóng vai huấn luyện viên cá nhân và gợi ý một lịch tập luyện kéo dài 1 tuần cho người có mục tiêu: " + goal +
+                ". Mỗi ngày nên gồm: thứ trong tuần, thời gian tập, loại hình tập, thời lượng. Hãy trình bày gợi ý một cách dễ hiểu như đang trò chuyện với người tập, không cần JSON, không cần đánh dấu markdown.";
+
         String aiResponse = chatGPTService.sendMessageToChatbot(message);
 
-        // Parse JSON từ response AI
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode root = objectMapper.readTree(aiResponse);
-
-            if (root.isArray()) {
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-
-                List<WorkoutSchedule> schedules = new java.util.ArrayList<>();
-                for (JsonNode node : root) {
-                    WorkoutSchedule schedule = WorkoutSchedule.builder()
-                            .dayOfWeek(node.get("day").asText())
-                            .timeSlot(node.get("time").asText())
-                            .workoutType(node.get("type").asText())
-                            .duration(node.get("duration").asInt())
-                            .build();
-                    schedules.add(schedule);
-                }
-
-                workoutScheduleRepository.saveAll(schedules);
-                return schedules;
-            } else {
-                throw new RuntimeException("AI không trả về định dạng JSON đúng");
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Không thể phân tích phản hồi AI: " + e.getMessage());
-        }
+        return new WorkoutScheduleChatResponse(aiResponse.trim());
     }
+
+
 }

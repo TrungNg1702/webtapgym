@@ -2,6 +2,7 @@ package com.project.WebTapGym.controllers;
 
 import com.project.WebTapGym.dtos.WorkoutScheduleDTO;
 import com.project.WebTapGym.models.WorkoutSchedule;
+import com.project.WebTapGym.responses.WorkoutScheduleChatResponse;
 import com.project.WebTapGym.responses.WorkoutScheduleListResponse;
 import com.project.WebTapGym.responses.WorkoutScheduleResponse;
 import com.project.WebTapGym.services.IWorkoutScheduleService;
@@ -66,13 +67,15 @@ public class WorkoutScheduleController {
     @GetMapping("/suggest")
     public ResponseEntity<?> suggestWorkoutSchedule(
             @RequestParam Long userId,
-            @RequestParam String goal
+            @RequestParam(required = false) String goal // optional
     ) {
         try {
-            List<WorkoutSchedule> suggestedSchedules = workoutScheduleService.suggestWorkoutSchedule(userId, goal);
-            return ResponseEntity.ok(suggestedSchedules);
+            WorkoutScheduleChatResponse response = workoutScheduleService.suggestWorkoutSchedule(userId, goal);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
+
+
 }
