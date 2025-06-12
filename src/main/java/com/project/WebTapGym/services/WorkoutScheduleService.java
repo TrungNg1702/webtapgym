@@ -9,7 +9,10 @@ import com.project.WebTapGym.models.WorkoutSchedule;
 import com.project.WebTapGym.repositories.ExerciseRepository;
 import com.project.WebTapGym.repositories.UserRepository;
 import com.project.WebTapGym.repositories.WorkoutScheduleRepository;
+import com.project.WebTapGym.responses.WorkoutScheduleResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,9 +60,10 @@ public class WorkoutScheduleService implements IWorkoutScheduleService
     }
 
     @Override
-    @Transactional
-    public List<WorkoutSchedule> getWorkoutSchedulesByUserId(Long userId) {
-        return workoutScheduleRepository.findByUserId_Id(userId);
+    public Page<WorkoutScheduleResponse> getWorkoutSchedulesByUserId(Long userId, PageRequest pageRequest) {
+        return workoutScheduleRepository
+                .findByUserId_Id(userId, pageRequest)
+                .map(WorkoutScheduleResponse::fromWorkoutSchedule);
     }
 
     @Override
