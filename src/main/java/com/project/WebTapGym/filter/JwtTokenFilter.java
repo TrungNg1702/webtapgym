@@ -131,10 +131,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/chatbot", apiPrefix), "POST"),
                 Pair.of(String.format("%s/food-analysis/analyze", apiPrefix), "POST"),
                 Pair.of(String.format("%s/workout-schedules", apiPrefix), "POST"),
-                Pair.of(String.format("%s/excel/upload", apiPrefix), "POST"),
-                Pair.of(String.format("%s/excel/user/", apiPrefix), "GET"),
-                Pair.of(String.format("%s/excel/", apiPrefix), "POST"),
-                Pair.of(String.format("%s/excel/suggest", apiPrefix), "GET")
+                Pair.of(String.format("%s/workout-schedules/user/", apiPrefix), "GET"),
+                Pair.of(String.format("%s/workout-schedules/", apiPrefix), "POST"),
+                Pair.of(String.format("%s/workout-schedules/suggest", apiPrefix), "GET")
         );
 
         String requestPath = request.getServletPath();
