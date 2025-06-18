@@ -14,12 +14,18 @@ import com.project.WebTapGym.responses.WorkoutScheduleResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 public class WorkoutScheduleService implements IWorkoutScheduleService
@@ -28,7 +34,7 @@ public class WorkoutScheduleService implements IWorkoutScheduleService
     private final WorkoutScheduleRepository workoutScheduleRepository;
     private final UserRepository userRepository;
     private final ExerciseRepository  exerciseRepository;
-
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -94,5 +100,31 @@ public class WorkoutScheduleService implements IWorkoutScheduleService
         return new WorkoutScheduleChatResponse(aiResponse.trim());
     }
 
+    @Scheduled(cron = "0 0 7 * * ?") // Mỗi ngày lúc 07:00 sáng
+    public void sendDailyWorkoutReminders() {
+        DayOfWeek todayEnum = LocalDate.now().getDayOfWeek();
 
+        // Lấy cả tên tiếng Việt và tiếng Anh
+        String viName = todayEnum.getDisplayName(TextStyle.FULL, new Locale("vi", "VN"));   // Thứ Hai
+        String enName = todayEnum.getDisplayName(TextStyle.FULL, Locale.ENGLISH);           // Monday
+
+        // Tìm các lịch tập cho hôm nay (chấp nhận cả tiếng Việt và Anh)
+        List<WorkoutSchedule> todaysSchedules = workoutScheduleRepository.findSchedulesForToday(String.valueOf(List.of(viName, enName)));
+
+        for (WorkoutSchedule schedule : todaysSchedules) {
+            String email = schedule.getUserId().getEmail();
+            String content = String.format("""
+                    Chào bạn,
+
+                    Hôm nay bạn có lịch tập như sau:
+                    • Loại hình: %s
+                    • Thời gian: %s
+                    • Thời lượng: %d phút
+                    
+                    Chúc bạn tập luyện hiệu quả!
+                    """, schedule.getWorkoutType(), schedule.getTimeSlot(), schedule.getDuration());
+
+            emailService.sendReminderEmail(email, "📅 Nhắc nhở lịch tập hôm nay", content);
+        }
+    }
 }
