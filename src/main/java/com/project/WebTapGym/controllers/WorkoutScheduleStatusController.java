@@ -1,5 +1,6 @@
 package com.project.WebTapGym.controllers;
 
+import com.project.WebTapGym.dtos.WorkoutStatisticsResponseDTO;
 import com.project.WebTapGym.dtos.WorkoutStatusDTO;
 import com.project.WebTapGym.services.IWorkoutScheduleStatusService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,12 @@ public class WorkoutScheduleStatusController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/user/{userId}/statistics")
+    public ResponseEntity<WorkoutStatisticsResponseDTO> getWorkoutStatistics(@PathVariable Long userId) {
+        WorkoutStatisticsResponseDTO response = workoutStatusService.getWorkoutStatistics(userId);
+        return ResponseEntity.ok(response);
     }
 
 }

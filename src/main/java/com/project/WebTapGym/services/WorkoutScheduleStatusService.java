@@ -1,5 +1,6 @@
 package com.project.WebTapGym.services;
 
+import com.project.WebTapGym.dtos.WorkoutStatisticsResponseDTO;
 import com.project.WebTapGym.dtos.WorkoutStatusDTO;
 import com.project.WebTapGym.models.User;
 import com.project.WebTapGym.models.WorkoutSchedule;
@@ -40,4 +41,19 @@ public class WorkoutScheduleStatusService implements IWorkoutScheduleStatusServi
 
         statusRepo.save(status);
     }
+
+    @Override
+    public WorkoutStatisticsResponseDTO getWorkoutStatistics(Long userId) {
+        long total = statusRepo.countByUser_Id(userId);
+        long completed = statusRepo.countByUser_IdAndCompletedTrue(userId);
+
+        double efficiency = total == 0 ? 0 : ((double) completed / total) * 100;
+
+        return WorkoutStatisticsResponseDTO.builder()
+                .totalSessions(total)
+                .completedSessions(completed)
+                .efficiency(Math.round(efficiency * 10.0) / 10.0) // làm tròn 1 chữ số
+                .build();
+    }
+
 }
