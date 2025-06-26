@@ -17,9 +17,10 @@ import java.util.stream.Collectors;
 public class PostResponse {
     private Long id;
     private String content;
-    private Long userId;
-    // Thay đổi từ List<String> sang List<PostImageResponse>
-    private List<PostImageResponse> postImages;
+    private Long userId; // Chỉ trả về ID của người dùng
+    private List<PostImageResponse> postImages; // Bao gồm ID và URL của ảnh
+    private List<CommentResponse> comments; // Thêm danh sách bình luận
+    private List<LikeResponse> likes;     // Thêm danh sách lượt thích
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -45,11 +46,29 @@ public class PostResponse {
                     .collect(Collectors.toList());
         }
 
+        List<CommentResponse> commentResponses = null;
+        // Kiểm tra null để tránh LazyInitializationException nếu comments chưa được tải
+        if (post.getComments() != null) {
+            commentResponses = post.getComments().stream()
+                    .map(CommentResponse::fromComment)
+                    .collect(Collectors.toList());
+        }
+
+        List<LikeResponse> likeResponses = null;
+        // Kiểm tra null để tránh LazyInitializationException nếu likes chưa được tải
+        if (post.getLikes() != null) {
+            likeResponses = post.getLikes().stream()
+                    .map(LikeResponse::fromLike)
+                    .collect(Collectors.toList());
+        }
+
         return PostResponse.builder()
                 .id(post.getId())
                 .content(post.getContent())
                 .userId(post.getUser() != null ? post.getUser().getId() : null)
-                .postImages(images) // Gán danh sách PostImageResponse
+                .postImages(images)
+                .comments(commentResponses) // Gán danh sách bình luận đã chuyển đổi
+                .likes(likeResponses)       // Gán danh sách lượt thích đã chuyển đổi
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();
