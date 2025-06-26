@@ -15,16 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Post {
+public class Post extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        private Long id;
 
     @Column(columnDefinition = "TEXT")
     private String content;
-
-    @Column(name = "image_url", length = 300)
-    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "user_id",  nullable = false)
@@ -39,4 +36,7 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> postImages = new ArrayList<>();
 }
