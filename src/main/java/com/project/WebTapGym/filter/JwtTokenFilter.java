@@ -153,7 +153,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/likes/", apiPrefix), "POST"),
                 Pair.of(String.format("%s/likes/", apiPrefix), "GET"),
                 Pair.of(String.format("%s/likes/", apiPrefix), "PUT"),
-                Pair.of(String.format("%s/likes/", apiPrefix), "DELETE")
+                Pair.of(String.format("%s/likes/", apiPrefix), "DELETE"),
+                Pair.of(String.format("%s/challenges/", apiPrefix), "POST"),
+                Pair.of(String.format("%s/challenges", apiPrefix), "POST"),
+                Pair.of(String.format("%s/challenges", apiPrefix), "GET"),
+                Pair.of(String.format("%s/challenges/", apiPrefix), "GET"),
+                Pair.of(String.format("%s/challenges/", apiPrefix), "PUT"),
+                Pair.of(String.format("%s/challenges/", apiPrefix), "DELETE")
 
         );
 
