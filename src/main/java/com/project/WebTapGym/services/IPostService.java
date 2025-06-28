@@ -8,6 +8,7 @@ import java.util.List;
 public interface IPostService {
     Post createPost(Long userId, String content, List<MultipartFile> files);
     List<Post> getAllPosts();
+    List<Post> getAllPostsOfUser(Long userId);
     Post getPostById(Long id);
     Post updatePost(Long postId, String content, List<MultipartFile> files);
     void deletePostImage(Long imageId);

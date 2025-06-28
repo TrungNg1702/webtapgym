@@ -7,10 +7,12 @@ import com.project.WebTapGym.repositories.PostImageRepository;
 import com.project.WebTapGym.repositories.PostRepository;
 import com.project.WebTapGym.repositories.UserRepository;
 
+import com.project.WebTapGym.responses.PostResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value; // Thêm import Value
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -83,6 +85,11 @@ public class PostService implements IPostService {
     @Override
     public List<Post> getAllPosts() {
         return postRepository.findAll();
+    }
+
+    @Override
+    public List<Post> getAllPostsOfUser(Long userId) {
+        return postRepository.findByUserId(userId);
     }
 
     @Override

@@ -42,6 +42,18 @@ public class PostController {
         return ResponseEntity.ok(postResponses);
     }
 
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getPostOfUser(@PathVariable Long id) {
+        try {
+            List<Post> posts = postService.getAllPostsOfUser(id);
+            List<PostResponse> postResponses = posts.stream()
+                    .map(PostResponse::fromPost)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(postResponses );
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable Long id) {
         try {
@@ -51,6 +63,8 @@ public class PostController {
             return ResponseEntity.notFound().build();
         }
     }
+
+   
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updatePost(
